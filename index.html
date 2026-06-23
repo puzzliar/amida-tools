@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>削減アミダクジ — 運営ツール</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Hiragino Mincho ProN','Hiragino Mincho Pro','YuMincho','Yu Mincho','游明朝','Noto Serif JP',serif;
+  background:#0a0a09;color:#f0ede6;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;
+}
+.title{
+  font-size:clamp(28px,5vw,48px);font-weight:700;letter-spacing:.15em;color:#ef9f27;
+  background:linear-gradient(180deg,#f8efd8 0%,#d4a04a 45%,#b88a3e 60%,#704c1a 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 12px rgba(239,159,39,.35));
+  margin-bottom:8px;
+}
+.sub{font-size:13px;color:#b8b5ae;letter-spacing:.3em;margin-bottom:36px;text-transform:uppercase}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;max-width:720px;width:100%}
+.card{
+  background:#141412;border:1.5px solid #b88a3e;border-radius:10px;
+  padding:22px 24px;text-decoration:none;color:inherit;
+  transition:.2s;display:flex;flex-direction:column;gap:8px;
+}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(239,159,39,.25);background:#1e1e1c}
+.card-icon{font-size:32px}
+.card-title{font-size:18px;font-weight:700;color:#ef9f27;letter-spacing:.05em}
+.card-desc{font-size:12px;color:#b8b5ae;line-height:1.6}
+.footer{margin-top:36px;font-size:11px;color:#6a6864;text-align:center}
+.footer a{color:#b88a3e;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="title">削減アミダクジ</div>
+<div class="sub">SUBTRACTION &nbsp; AMIDA &nbsp; LOTTERY</div>
+<div class="grid">
+  <a class="card" href="tool.html">
+    <div class="card-icon">⚙️</div>
+    <div class="card-title">集計ツール</div>
+    <div class="card-desc">ディーラー用。セッション管理、場所決め投票、本戦集計、最終結果まで。</div>
+  </a>
+  <a class="card" href="present.html">
+    <div class="card-icon">📺</div>
+    <div class="card-title">発表ツール</div>
+    <div class="card-desc">プレイヤー卓のスクリーン用。ルール説明 → タイマー → 結果発表まで。</div>
+  </a>
+</div>
+<div class="footer">
+  PUZZLIAR &nbsp;·&nbsp; <a href="https://puzzliar.jp">puzzliar.jp</a>
+</div>
+</body>
+</html>

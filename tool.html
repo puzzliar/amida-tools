@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>削減アミダクジ 運営ツール</title>
+<style>
+:root{
+  --bg0:#0e0e0d;--bg1:#1a1a18;--bg2:#242422;--bg3:#2e2e2b;
+  --border:#3a3a37;--border2:#4a4a46;
+  --text0:#f0ede6;--text1:#b8b5ae;--text2:#7a7872;
+  --red:#e24b4a;--red-dim:#6b2424;
+  --green:#5dcaa5;--green-dim:#0a3d2a;
+  --gold:#ef9f27;--gold-dim:#3d2a08;
+  --purple:#9f8fef;--purple-dim:#2a2240;
+  font-size:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg0);color:var(--text0);font-family:'Hiragino Sans','Meiryo',sans-serif;min-height:100vh;overflow-x:hidden}
+#topbar{display:flex;align-items:center;gap:12px;padding:8px 16px;background:var(--bg1);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+#topbar h1{font-size:12px;letter-spacing:.12em;color:var(--text1);font-weight:400;flex-shrink:0}
+#topbar h1 span{color:var(--red);font-weight:700}
+.spacer{flex:1}
+#sbBadge{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--border);color:var(--text2);cursor:pointer;transition:.2s;white-space:nowrap}
+#sbBadge.ok{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+#sbBadge.err{border-color:var(--red);color:var(--red);background:var(--red-dim)}
+#sbBadge.busy{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
+#shell{display:grid;grid-template-columns:192px 1fr;height:calc(100vh - 41px)}
+#sidenav{background:var(--bg1);border-right:1px solid var(--border);padding:10px 0;overflow-y:auto}
+#main{overflow-y:auto;padding:16px}
+.nav-section{font-size:10px;letter-spacing:.1em;color:var(--text2);padding:6px 14px 3px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:12px;color:var(--text1);transition:.15s;border-left:2px solid transparent}
+.nav-item:hover{background:var(--bg2);color:var(--text0)}
+.nav-item.active{background:var(--bg2);color:var(--text0);border-left-color:var(--red)}
+.nav-item .icon{width:14px;text-align:center;font-size:13px;flex-shrink:0}
+.nav-divider{border:none;border-top:1px solid var(--border);margin:6px 0}
+.panel{display:none}.panel.active{display:block}
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px}
+.card-title{font-size:10px;letter-spacing:.1em;color:var(--text2);margin-bottom:10px;text-transform:uppercase}
+.btn{padding:6px 14px;border-radius:5px;border:1px solid var(--border2);background:var(--bg2);color:var(--text0);font-size:12px;cursor:pointer;transition:.15s;font-family:inherit;white-space:nowrap}
+.btn:hover{background:var(--bg3);border-color:var(--text2)}
+.btn-red{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.btn-red:hover{background:var(--red);color:#fff}
+.btn-green{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.btn-green:hover{background:var(--green);color:#000}
+.btn-gold{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.btn-gold:hover{background:var(--gold);color:#000}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-xs{padding:2px 7px;font-size:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+input[type=text],input[type=number],select,textarea{background:var(--bg2);border:1px solid var(--border);color:var(--text0);border-radius:5px;padding:5px 8px;font-size:12px;font-family:inherit;transition:.15s;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--red)}
+input[type=number]{width:64px;text-align:center}
+.badge{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:500}
+.badge-red{background:var(--red-dim);color:var(--red)}
+.badge-green{background:var(--green-dim);color:var(--green)}
+.badge-gold{background:var(--gold-dim);color:var(--gold)}
+.badge-purple{background:var(--purple-dim);color:var(--purple)}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{font-size:10px;color:var(--text2);padding:5px 8px;border-bottom:1px solid var(--border);text-align:left;font-weight:400;letter-spacing:.06em;text-transform:uppercase}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--border)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--bg2)}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row+.row{margin-top:6px}
+.label{font-size:11px;color:var(--text2);white-space:nowrap}
+.divider{border:none;border-top:1px solid var(--border);margin:10px 0}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:12px}
+.metric{background:var(--bg2);border-radius:6px;padding:10px;text-align:center;border:1px solid var(--border)}
+.metric-label{font-size:10px;color:var(--text2);margin-bottom:3px}
+.metric-value{font-size:20px;font-weight:700;color:var(--text0)}
+.metric-sub{font-size:10px;color:var(--text2);margin-top:1px}
+.logbox{background:var(--bg0);border:1px solid var(--border);border-radius:5px;padding:6px 10px;max-height:160px;overflow-y:auto;font-size:11px;font-family:'Courier New',monospace}
+.log-row{display:flex;gap:8px;padding:2px 0;border-bottom:1px solid var(--border)}
+.log-row:last-child{border:none}
+.log-time{color:var(--text2);min-width:52px;flex-shrink:0}
+.log-ok{color:var(--green)}.log-err{color:var(--red)}.log-warn{color:var(--gold)}.log-info{color:var(--text1)}
+.period-bar{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
+.pdot{width:30px;height:30px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;transition:.2s}
+.pdot:hover{border-color:var(--text1);color:var(--text0)}
+.pdot.done{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.pdot.current{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+/* セッション */
+.session-card{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:10px}
+.session-card:hover{border-color:var(--border2);background:var(--bg2)}
+.session-card.active-session{border-color:var(--red);background:rgba(226,75,74,.06)}
+.session-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.session-dot.active{background:var(--green)}.session-dot.finished{background:var(--text2)}
+.session-info{flex:1;min-width:0}
+.session-name{font-size:13px;color:var(--text0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-meta{font-size:10px;color:var(--text2);margin-top:2px}
+.session-actions{display:flex;gap:4px;flex-shrink:0}
+/* 投票 */
+.vote-card{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:6px 7px}
+.vote-card.lost{opacity:.5;border-color:var(--border)}
+/* インライン投票結果（処理結果ログ廃止後の代替表示） */
+.vote-result-inline{margin-top:4px;padding:3px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;font-size:10px;line-height:1.4}
+.vote-result-inline .vri-row{display:flex;align-items:center;gap:4px;padding:0}
+.vote-result-inline .vri-label{color:var(--text2);font-size:9px;min-width:48px}
+.vote-result-inline .vri-bar{font-family:'Courier New',monospace;color:var(--gold);font-weight:700}
+.vote-result-inline .vri-ok{color:var(--green)}
+.vote-result-inline .vri-warn{color:var(--gold)}
+.vote-result-inline .vri-bad{color:var(--red)}
+.vote-result-inline .vri-flow{color:#9f8fef;font-weight:700}
+.alpha-badge{width:22px;height:22px;border-radius:4px;background:var(--purple-dim);border:1px solid var(--purple);color:var(--purple);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+/* メダル */
+.medal-status{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;margin-bottom:10px}
+.medal-chip{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px;text-align:center}
+.mc-alpha{font-size:9px;color:var(--text2);margin-bottom:1px}
+.mc-count{font-size:18px;font-weight:700;color:var(--gold)}
+.mc-name{font-size:9px;color:var(--text1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* result */
+.result-row-winner td{background:rgba(239,159,39,.08)}
+.result-row-loser td{color:var(--red)}
+/* タイマー */
+.timer-bar{height:4px;border-radius:2px;background:var(--border);overflow:hidden;margin-bottom:10px}
+.timer-fill{height:100%;background:var(--green);transition:width .5s,background .5s;border-radius:2px}
+#timerDisp{font-size:52px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text0);text-align:center;letter-spacing:-.02em;margin:6px 0}
+#timerDisp.warn{color:var(--gold)}
+#timerDisp.danger{color:var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.4}}
+/* モーダル */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(3px)}
+/* 接続切断モーダル: 操作で閉じられない */
+#disconnectModal{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(10px)}
+.dc-card{background:var(--bg1);border:2px solid var(--red);border-radius:12px;padding:28px 36px;min-width:320px;max-width:90vw;text-align:center;box-shadow:0 0 48px rgba(196,62,58,.45)}
+.dc-title{font-size:17px;font-weight:700;color:var(--red);margin-bottom:12px;letter-spacing:.05em}
+.dc-spin{width:48px;height:48px;border:4px solid var(--bg2);border-top-color:var(--red);border-radius:50%;animation:dcspin 1s linear infinite;margin:0 auto 14px}
+@keyframes dcspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.dc-msg{font-size:13px;color:var(--text1);line-height:1.6}
+.dc-attempts{font-size:11px;color:var(--text2);margin-top:10px;font-variant-numeric:tabular-nums}
+.modal{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:20px;width:420px;max-width:96vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:14px;font-weight:700;margin-bottom:14px}
+.modal-row{margin-bottom:10px}
+.modal-row label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px}
+.modal-row input,.modal-row select{width:100%}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+#confirmBg{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:300;display:none}
+#confirmBox{background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:20px;width:320px;text-align:center}
+#confirmMsg{font-size:13px;color:var(--text0);margin-bottom:14px;line-height:1.6}
+#confirmActions{display:flex;gap:8px;justify-content:center}
+/* amida paging */
+.turn-pager{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.turn-thumb{width:28px;height:28px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s}
+.turn-thumb:hover{border-color:var(--border2);color:var(--text0)}
+.turn-thumb.current-turn{border-color:var(--red);background:var(--red-dim);color:var(--red)}
+.turn-thumb.has-log{border-color:var(--purple-dim);color:var(--purple)}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <h1>削減アミダクジ <span>運営ツール</span></h1>
+  <div class="spacer"></div>
+  <span id="sessionName" style="font-size:11px;color:var(--text2);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">セッション未選択</span>
+  <span id="sbBadge" onclick="openModal('sbModal')">未接続</span>
+</div>
+
+<div id="shell">
+<nav id="sidenav">
+  <div class="nav-section">セッション</div>
+  <div class="nav-item active" onclick="showPanel('panelSessions')" id="nav-panelSessions"><span class="icon">▤</span>セッション管理</div>
+  <hr class="nav-divider">
+  <div class="nav-section">ゲーム運営</div>
+  <div class="nav-item" onclick="showPanel('panelSetup')" id="nav-panelSetup"><span class="icon">⚙</span>セットアップ</div>
+  <div class="nav-item" onclick="showPanel('panelPlace')" id="nav-panelPlace"><span class="icon">◉</span>場所決め投票</div>
+  <div class="nav-item" onclick="showPanel('panelVote')" id="nav-panelVote"><span class="icon">✉</span>投票集計</div>
+  <div class="nav-item" onclick="showPanel('panelAmida')" id="nav-panelAmida"><span class="icon">◎</span>アミダ管理</div>
+  <hr class="nav-divider">
+  <div class="nav-section">結果・記録</div>
+  <div class="nav-item" onclick="showPanel('panelResult')" id="nav-panelResult"><span class="icon">★</span>最終集計</div>
+  <div class="nav-item" onclick="showPanel('panelLogs')" id="nav-panelLogs"><span class="icon">≡</span>ログ</div>
+</nav>
+
+<div id="main">
+
+<!-- SESSIONS -->
+<div class="panel active" id="panelSessions">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+    <h2 style="font-size:15px;font-weight:700">セッション管理</h2>
+    <button class="btn btn-green btn-sm" onclick="openModal('newSessionModal')">+ 新規</button>
+    <button class="btn btn-sm" onclick="loadSessions()">更新</button>
+  </div>
+  <div id="sessionList"><div style="color:var(--text2);font-size:12px">読み込み中...</div></div>
+</div>
+
+<!-- SETUP -->
+<div class="panel" id="panelSetup">
+  <h2 style="font-size:15px;font-weight:700;margin-bottom:12px">セットアップ</h2>
+  <div class="card">
+    <div class="card-title">プレイヤー（名前・初期メダル）</div>
+    <div id="playerListSetup"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">確認</div>
+    <div class="metrics" id="setupMetrics"></div>
+  </div>
+</div>
+
+<!-- PLACE VOTE -->
+<div class="panel" id="panelPlace">
+  <h2 style="font-size:15px;font-weight:700;margin-bottom:10px">場所決め投票</h2>
+  <!-- ラウンド状態 -->
+  <div class="card" style="padding:10px 14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <div class="row" style="gap:10px">
+        <span style="font-size:13px;font-weight:700">ラウンド <span id="placeRound" style="color:var(--red)">1</span> / 3</span>
+        <span id="placeTimerDisp" style="font-size:13px;color:var(--gold);font-variant-numeric:tabular-nums;font-weight:700">10:00</span>
+        <button class="btn btn-sm btn-green" id="placeTimerBtn" onclick="togglePlaceTimer()">▶</button>
+        <button class="btn btn-sm" onclick="resetPlaceTimer()">↺</button>
+      </div>
+      <div class="row" style="gap:6px">
+        <button class="btn btn-sm" onclick="calcPlaceVotes()">集計</button>
+        <button class="btn btn-sm btn-gold" onclick="randomAssign()">ランダム割当</button>
+        <button class="btn btn-sm" onclick="nextPlaceRound()">次ラウンド ▶</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text2)">
+      ルール：1人だけが希望→確定 / 複数が同じ位置を希望→全員無効・再投票。最終ラウンドで残った未確定者はランダム割当。
+    </div>
+  </div>
+  <!-- 投票入力グリッド -->
+  <div class="card">
+    <div class="card-title">希望位置を入力</div>
+    <div id="placeVoteArea"></div>
+  </div>
+  <!-- 結果表示 -->
+  <div class="card">
+    <div class="card-title">確定状況</div>
+    <div id="placeResultArea"></div>
+  </div>
+  <!-- ログ -->
+  <div class="card">
+    <div class="card-title">集計ログ</div>
+    <div class="logbox" id="placeLogBox"></div>
+  </div>
+</div>
+
+<!-- VOTE -->
+<div class="panel" id="panelVote">
+  <h2 style="font-size:15px;font-weight:700;margin-bottom:10px">投票集計</h2>
+  <div class="period-bar" id="periodBar"></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <span style="font-size:13px;font-weight:700">ターン <span id="curP" style="color:var(--red)">1</span> / <span id="totalPDisp">5</span></span>
+      <div class="row" style="gap:6px">
+        <button class="btn btn-sm" onclick="adjPeriod(-1)">◀</button>
+        <button class="btn btn-green btn-sm" onclick="calcVotes()">集計・保存</button>
+        <button class="btn btn-sm" onclick="adjPeriod(1)">▶</button>
+      </div>
+    </div>
+    <div id="voteArea"></div>
+  </div>
+  <div id="voteResultArea"></div>
+</div>
+
+<!-- AMIDA -->
+<div class="panel" id="panelAmida">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+    <h2 style="font-size:15px;font-weight:700">アミダ管理</h2>
+    <div class="row" style="gap:6px">
+      <button class="btn btn-sm" onclick="saveBarState()">状態保存</button>
+    </div>
+  </div>
+  <!-- ターンページング -->
+  <div class="card" style="padding:10px 14px">
+    <div class="card-title" style="margin-bottom:6px">ターン推移</div>
+    <div class="turn-pager" id="turnPager"></div>
+    <div id="turnChangeLog" style="font-size:11px;color:var(--text2)"></div>
+  </div>
+  <div class="card" style="padding:6px">
+    <div id="amidaStageWrap" style="display:flex;justify-content:center;align-items:center">
+      <svg id="amidaSvg" viewBox="-390 -390 780 780" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-height:560px"></svg>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">横線一覧（クリックで消去/復活）</div>
+    <div id="barGrid" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+  </div>
+  <!-- 「ルート数（参考値）」セクションは削除。通過横棒数はアミダ周囲のプレイヤーラベル内に表示 -->
+</div>
+
+<!-- RESULT -->
+<div class="panel" id="panelResult">
+  <h2 style="font-size:15px;font-weight:700;margin-bottom:12px">最終集計</h2>
+  <!-- チップ入力欄 -->
+  <div class="card" id="chipInputCard">
+    <div class="card-title">最終チップ数を入力（1チップ = 1億L$）</div>
+    <div id="chipInputArea"></div>
+    <div style="margin-top:10px">
+      <button class="btn btn-gold btn-sm" onclick="confirmChips()">確定して計算</button>
+      <span id="chipConfirmed" style="font-size:11px;color:var(--green);margin-left:8px;display:none">✓ 確定済み</span>
+    </div>
+  </div>
+  <div id="resultContent"></div>
+</div>
+
+<!-- LOGS -->
+<div class="panel" id="panelLogs">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <h2 style="font-size:15px;font-weight:700">ログ</h2>
+    <button class="btn btn-sm" onclick="exportCSV()">CSVエクスポート</button>
+  </div>
+  <div class="card">
+    <div class="card-title">操作ログ</div>
+    <div class="logbox" id="opLogBox" style="max-height:260px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Supabase 保存済みログ</div>
+    <div id="sbPeriodLogs" style="font-size:12px;color:var(--text2)">読み込み中...</div>
+  </div>
+</div>
+
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- Supabase設定モーダル -->
+<div class="modal-bg" id="sbModal" style="display:none" onclick="if(event.target===this)closeModal('sbModal')">
+<div class="modal">
+  <div class="modal-title">Supabase 接続設定</div>
+  <div class="modal-row"><label>Project URL</label><input type="text" id="sbUrl" placeholder="https://xxxx.supabase.co"></div>
+  <div class="modal-row"><label>Anon Key</label><input type="text" id="sbKey" placeholder="eyJ..."></div>
+  <div class="modal-actions">
+    <button class="btn btn-sm" onclick="closeModal('sbModal')">キャンセル</button>
+    <button class="btn btn-green btn-sm" onclick="testSb(false)">接続テスト & 保存</button>
+  </div>
+</div>
+</div>
+
+<!-- 新規セッションモーダル -->
+<div class="modal-bg" id="newSessionModal" style="display:none" onclick="if(event.target===this)closeModal('newSessionModal')">
+<div class="modal">
+  <div class="modal-title">新規セッション作成</div>
+  <div class="modal-row"><label>セッション名</label><input type="text" id="nsLabel" placeholder="2026-05-03 第1回" style="width:100%" oninput="document.getElementById('nsErrMsg').textContent=''"></div>
+  <div id="nsErrMsg" style="font-size:11px;color:var(--red);min-height:1.4em;margin-top:-6px;margin-bottom:6px"></div>
+  <div class="modal-row"><label>参加人数（3〜15人）</label><input type="number" id="nsCount" value="6" min="3" max="15" oninput="this.value=Math.min(15,Math.max(3,parseInt(this.value)||3))"></div>
+  <div class="modal-row"><label>横線/区間（本）</label><input type="number" id="nsBarsPerSector" value="6" min="1" max="20"></div>
+  <div class="modal-row"><label>ターン数</label><input type="number" id="nsTurnCount" value="5" min="1" max="10"></div>
+  <div class="modal-row"><label>1ターン（分）</label><input type="number" id="nsTurnMinutes" value="10" min="1" max="60"></div>
+  <div class="modal-row"><label>マイナスカード/人（枚）</label><input type="number" id="nsMinusCards" value="3" min="0" max="20"></div>
+  <div class="modal-row"><label>プラスカード/人（枚）</label><input type="number" id="nsPlusCards" value="1" min="0" max="10"></div>
+
+  <!-- ── ルールバージョン選択（旧/新 トグル） ── -->
+  <div style="margin-top:10px;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--gold);margin-bottom:6px">ルールバージョン</div>
+    <div style="display:flex;flex-direction:column;gap:5px;font-size:11px;margin-bottom:4px">
+      <label style="display:flex;align-items:flex-start;gap:6px;cursor:pointer">
+        <input type="radio" name="nsRuleVersion" value="old" checked onchange="_applyRuleVersionPreset('old')" style="margin-top:3px">
+        <span><b>旧ルール</b>（〜2026-05版）<br><span style="color:var(--text2);font-size:10px">最終生存者1名、メダル1枚=1億L$／プラス初期1枚配布／場所決め3ラウンド全実施</span></span>
+      </label>
+      <label style="display:flex;align-items:flex-start;gap:6px;cursor:pointer">
+        <input type="radio" name="nsRuleVersion" value="new" onchange="_applyRuleVersionPreset('new')" style="margin-top:3px">
+        <span><b>新ルール</b>（2026-06-22版）<br><span style="color:var(--text2);font-size:10px">最終生存者3名・1位6,000万/2位3,000万/3位1,000万L$／プラス初期配布なし(マイナス2枚で交換)／場所決め再投票1回限定</span></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- ── 拡張ルール設定 ── -->
+  <div style="margin-top:10px;padding:10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--gold);margin-bottom:6px">拡張ルール設定（裏ルール — プレイヤーには非公開）</div>
+
+    <div style="font-size:11px;color:var(--text2);margin-bottom:4px">賞金配分モード</div>
+    <div style="display:flex;gap:10px;font-size:11px;margin-bottom:8px">
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="radio" name="nsPrizeMode" value="A" checked onchange="document.getElementById('nsPrizeBFields').style.display='none';document.getElementById('nsPrizeAFields').style.display='block'">
+        A: 1位のみ
+      </label>
+      <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+        <input type="radio" name="nsPrizeMode" value="B" onchange="document.getElementById('nsPrizeAFields').style.display='none';document.getElementById('nsPrizeBFields').style.display='block'">
+        B: 1〜3位
+      </label>
+    </div>
+    <div id="nsPrizeAFields" style="margin-bottom:8px">
+      <div class="modal-row" style="margin-bottom:0"><label style="font-size:10px">1位賞金（円）</label><input type="number" id="nsPrizeA" value="100000000" min="1" step="1000"></div>
+    </div>
+    <div id="nsPrizeBFields" style="display:none;margin-bottom:8px">
+      <div class="modal-row" style="margin-bottom:4px"><label style="font-size:10px">1位（円）</label><input type="number" id="nsPrizeB1" value="100000000" min="1" step="1000"></div>
+      <div class="modal-row" style="margin-bottom:4px"><label style="font-size:10px">2位（円）</label><input type="number" id="nsPrizeB2" value="10000000" min="1" step="1000"></div>
+      <div class="modal-row" style="margin-bottom:0"><label style="font-size:10px">3位（円）</label><input type="number" id="nsPrizeB3" value="1000000" min="1" step="1000"></div>
+      <div style="font-size:10px;color:var(--text2);margin-top:4px">※ タイブレーク: ルート数同点時はAに近い始点を優先</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px">
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+        <input type="checkbox" id="nsHiddenLines"> 裏ルール: 不可視線（A0,B0,...）を導入
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+        <input type="checkbox" id="nsPermaLock"> ルール3: 同一線にマイナス2連投で永久無効化
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer">
+        <input type="checkbox" id="nsFlow"> ルール4: マイナス2枚投票で〈流れ〉（自分の全マイナス無効）
+      </label>
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;cursor:pointer;border-top:1px solid var(--border);padding-top:6px;margin-top:4px">
+        <input type="checkbox" id="nsHidePlaceResults"> 場所決め結果を発表ツールで非表示（プレイヤー名・番号・確定位置を一切表示しない）
+      </label>
+    </div>
+    <div style="font-size:10px;color:var(--text2);margin-top:6px">※ ルール3とルール4の同時発動時は<b>ルール3優先</b>（同一線2連投は永久ロック、流れは発動せず）</div>
+    <div style="font-size:10px;color:var(--text2);margin-top:2px">※「場所決め結果を非表示」ON時はブラフ要素を強化。本戦中のアミダも誰がどこにいるか発表ツール上では見えなくなります（集計ツール側では通常通り見える）。</div>
+  </div>
+
+  <div class="modal-actions">
+    <button class="btn btn-sm" onclick="closeModal('newSessionModal')">キャンセル</button>
+    <button class="btn btn-green btn-sm" onclick="createSession()">作成</button>
+  </div>
+</div>
+</div>
+
+<!-- 確認ダイアログ -->
+<!-- 接続切断モーダル（クリック・Escでは閉じない。再接続成功で自動で閉じる） -->
+<div id="disconnectModal">
+  <div class="dc-card">
+    <div class="dc-title">Supabase 接続が切断されました</div>
+    <div class="dc-spin"></div>
+    <div class="dc-msg">再接続を試行しています...<br>このまま少々お待ちください。</div>
+    <div class="dc-attempts" id="disconnectAttempts">試行回数: 0</div>
+  </div>
+</div>
+
+<div id="confirmBg">
+  <div id="confirmBox">
+    <div id="confirmMsg"></div>
+    <div id="confirmActions">
+      <button class="btn btn-sm" id="confirmNo">キャンセル</button>
+      <button class="btn btn-red btn-sm" id="confirmYes">実行</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALPHA='ABCDEFGHIJKLMNOP';
+// file:// 環境で localStorage が拒否される場合のクラッシュ防止ヘルパー
+const _LS={
+  get:k=>{try{return localStorage.getItem(k);}catch(e){return null;}},
+  set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}},
+  remove:k=>{try{localStorage.removeItem(k);}catch(e){}}
+};
+let SB_URL=_LS.get('sb_url')||'https://wiqnmebudaadwqdaxwko.supabase.co';
+let SB_KEY=_LS.get('sb_key')||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndpcW5tZWJ1ZGFhZHdxZGF4d2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NjE5MTQsImV4cCI6MjA5MzAzNzkxNH0.4pueIyzvCnFiIocZHJ8w-9-ViK9_x3T1HCOnGUzfAF8';
+let sbOK=false;
+let sessions=[];
+let curSession=null;
+let players=[];
+let bars=[];
+// PHANTOM: ファントム空席（奇数人参加時に末尾へ1席自動挿入。投票・メダル・賞金分配の対象外）
+function isPhantom(p){ return !!(p && p.isPhantom); }
+function realPlayerCount(){ return players.filter(p=>!isPhantom(p)).length; }
+function addPhantomIfNeeded(){
+  // 既にファントムが存在するなら何もしない（冪等）
+  if(players.some(isPhantom)) return;
+  const real=realPlayerCount();
+  if(real%2===1 && real>=3){
+    players.push({
+      alpha: ALPHA[real],
+      name: '(空席)',
+      medals: 0,
+      origIdx: -1,
+      isPhantom: true
+    });
+  }
+}
+let barsHistory={};   // {period: bars[]}
+let periodLogs={};    // {period: {flow,barChanges,log[]}}
+let medals=[];
+let chips=[];         // 最終チップ数（最終集計用）
+let chipsConfirmed=false;
+let period=1;
+let totalTurns=5;
+let turnMinutes=10;
+let barsPerSector=6;
+let minusCardCount=3;  // 1プレイヤーあたりのマイナスカード配布枚数
+let plusCardCount=1;   // 1プレイヤーあたりのプラスカード配布枚数
+let lostRight={};
+let opLog=[];
+let timerSec=600,timerMax=600,timerRunning=false,timerInt=null;
+let medalMoveLog=[];
+
+// ── ルールバージョン プリセット ──
+// new ルール（2026-06-22）の場合は、賞金モードB＋6000/3000/1000万、プラス0枚、再投票1回制限を一括反映
+function _applyRuleVersionPreset(ver){
+  if(ver==='new'){
+    // 賞金モードを B に切替
+    const rb=document.querySelector('input[name="nsPrizeMode"][value="B"]');
+    if(rb){ rb.checked=true; rb.dispatchEvent(new Event('change')); }
+    const e1=document.getElementById('nsPrizeB1'); if(e1) e1.value=60000000;
+    const e2=document.getElementById('nsPrizeB2'); if(e2) e2.value=30000000;
+    const e3=document.getElementById('nsPrizeB3'); if(e3) e3.value=10000000;
+    // プラスカード初期配布なし
+    const pc=document.getElementById('nsPlusCards'); if(pc) pc.value=0;
+  } else {
+    // 旧ルール: モードA、プラス1枚
+    const ra=document.querySelector('input[name="nsPrizeMode"][value="A"]');
+    if(ra){ ra.checked=true; ra.dispatchEvent(new Event('change')); }
+    const ea=document.getElementById('nsPrizeA'); if(ea) ea.value=100000000;
+    const pc=document.getElementById('nsPlusCards'); if(pc) pc.value=1;
+  }
+}
+
+// ── 拡張ルール関連の global state ──
+const DEFAULT_RULES_CONFIG = {
+  ruleVersion:'old',  // 'old' | 'new'
+  prizeMode:'A',
+  prizeA:100000000,
+  prizeB1:60000000, prizeB2:30000000, prizeB3:10000000,  // 新ルール(B)の標準額
+  hiddenLines:false, permaLock:false, flow:false,
+  // 新ルール: 場所決め再投票1回限定（2回目決まらなければランダム強制）
+  placeReVoteOnce: false,
+  // ブラフ強化: 場所決め結果を発表ツール側で隠す（誰がどの場所か非公開）
+  hidePlaceResults: false
+};
+let rulesConfig = {...DEFAULT_RULES_CONFIG};
+let barsHidden = [];   // 不可視線 idx の Set 風配列
+let barsLocked = [];   // 永久ロック idx の配列
+let voterEdgeMinusCount = {};  // {`${voterIdx}_${edgeIdx}`: count} — 解除時もメモリ整合用
+function isHidden(idx){ return barsHidden && barsHidden.includes(idx); }
+function isLocked(idx){ return barsLocked && barsLocked.includes(idx); }
+// effective traversal: 通過可能 = alive && not hidden && not locked
+function isTraversable(idx, barsArr){ return !!barsArr[idx] && !isHidden(idx) && !isLocked(idx); }
+// 表示ラベル: 不可視線ON時は row 0 を "0" 表記、それ以外は row+1
+function _labelForBar(idx, n){
+  const sector=idx%n, row=Math.floor(idx/n);
+  const numStr = rulesConfig.hiddenLines ? String(row) : String(row+1);
+  return ALPHA[sector]+numStr;
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('sbUrl').value=SB_URL;
+  document.getElementById('sbKey').value=SB_KEY;
+  setSbStatus('checking');
+  testSb(true);
+});
+
+// ── SUPABASE ──
+// 接続切断検知＋自動再接続
+let _dcShown=false, _dcAttempts=0, _dcReconnectInt=null, _dcMonitorInt=null;
+function showDisconnectModal(){
+  if(_dcShown) return;
+  _dcShown=true; _dcAttempts=0;
+  const el=document.getElementById('disconnectModal');
+  if(el){
+    el.style.display='flex';
+    const at=document.getElementById('disconnectAttempts');
+    if(at) at.textContent='試行回数: 0';
+  }
+  // 即座に1回、その後3秒ごと
+  _tryReconnect();
+  if(_dcReconnectInt) clearInterval(_dcReconnectInt);
+  _dcReconnectInt=setInterval(_tryReconnect, 3000);
+}
+function hideDisconnectModal(){
+  if(!_dcShown) return;
+  _dcShown=false;
+  const el=document.getElementById('disconnectModal');
+  if(el) el.style.display='none';
+  if(_dcReconnectInt){ clearInterval(_dcReconnectInt); _dcReconnectInt=null; }
+}
+async function _tryReconnect(){
+  _dcAttempts++;
+  const at=document.getElementById('disconnectAttempts');
+  if(at) at.textContent='試行回数: '+_dcAttempts;
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/amida_sessions?limit=1&select=id',{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    if(!r.ok) throw new Error('http '+r.status);
+    // 復活
+    setSbStatus('ok');
+    addLog('ok','Supabase 再接続成功（'+_dcAttempts+'回目で復帰）');
+    hideDisconnectModal();
+    // セッション状態を再フェッチ
+    if(curSession){
+      try{ await selectSession(curSession.id); }catch(e){}
+    } else {
+      loadSessions();
+    }
+  }catch(e){ /* まだ繋がらない。次の周期で再試行 */ }
+}
+// 30秒ごとの接続監視 ping
+function startConnectionMonitor(){
+  if(_dcMonitorInt) clearInterval(_dcMonitorInt);
+  _dcMonitorInt=setInterval(async ()=>{
+    if(_dcShown) return;        // すでに切断中
+    if(!sbOK) return;            // 未接続なら監視せず
+    try{
+      const r=await fetch(SB_URL+'/rest/v1/amida_sessions?limit=1&select=id',{
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+      });
+      if(!r.ok) throw new Error('http '+r.status);
+    }catch(e){
+      addLog('warn','接続切断検知（監視ping）');
+      setSbStatus('err');
+      showDisconnectModal();
+    }
+  }, 30000);
+}
+
+async function sbFetch(path,opts={}){
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/'+path,{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})},
+      ...opts
+    });
+    if(!r.ok){
+      const t=await r.text();
+      // 5xx は接続不安定として切断モーダル
+      if(r.status>=500){
+        setSbStatus('err');
+        showDisconnectModal();
+      }
+      throw new Error(r.status+' '+t);
+    }
+    return r.status===204?null:r.json();
+  }catch(e){
+    // ネットワーク到達不能（"Failed to fetch" 等）も切断扱い
+    if(e.name==='TypeError' || /Failed to fetch|NetworkError|Load failed/i.test(e.message||'')){
+      setSbStatus('err');
+      showDisconnectModal();
+    }
+    throw e;
+  }
+}
+function setSbStatus(s){
+  const el=document.getElementById('sbBadge');
+  el.className='';
+  if(s==='ok'){el.className='ok';el.textContent='Supabase接続済';sbOK=true;}
+  else if(s==='err'){el.className='err';el.textContent='接続エラー';sbOK=false;}
+  else if(s==='busy'){el.className='busy';el.textContent='保存中...';}
+  else{el.className='';el.textContent='接続確認中...';sbOK=false;}
+}
+async function testSb(silent=false){
+  if(!silent){
+    SB_URL=document.getElementById('sbUrl').value.trim().replace(/\/$/,'');
+    SB_KEY=document.getElementById('sbKey').value.trim();
+    _LS.set('sb_url',SB_URL);
+    _LS.set('sb_key',SB_KEY);
+    closeModal('sbModal');
+  }
+  setSbStatus('checking');
+  try{
+    await sbFetch('amida_sessions?limit=1&select=id');
+    setSbStatus('ok');
+    if(!silent) addLog('info','Supabase接続成功');
+  }catch(e){
+    setSbStatus('err');
+    if(!silent) addLog('err','接続失敗: '+e.message);
+  }
+  await loadSessions();
+  // ── リロード時に最後に選択していたセッションを自動復元 ──
+  try{
+    const lastId=_LS.get('amida_last_session');
+    if(lastId && sessions.some(s=>s.id===lastId)){
+      await selectSession(lastId);
+      addLog('info','前回のセッションを自動復元: '+(curSession?curSession.label:lastId));
+    }
+  }catch(e){ /* 復元失敗はサイレント */ }
+  // 接続監視ping を開始（接続OKのときのみ作動）
+  startConnectionMonitor();
+}
+
+// ── SESSION MANAGEMENT ──
+async function loadSessions(){
+  const el=document.getElementById('sessionList');
+  el.innerHTML='<div style="color:var(--text2);font-size:12px;padding:6px 0">読み込み中...</div>';
+  if(sbOK){
+    try{ sessions=await sbFetch('amida_sessions?select=*&order=created_at.desc'); }
+    catch(e){ el.innerHTML=`<div style="color:var(--red);font-size:12px">取得エラー: ${e.message}</div>`; return; }
+  } else {
+    el.innerHTML=`<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:11px;color:var(--text2);margin-bottom:10px">
+      Supabase未接続 — ローカルモードで動作中</div>`;
+    if(!sessions.length){ el.innerHTML+=`<div style="color:var(--text2);font-size:12px">セッションなし。「+ 新規」から作成してください。</div>`; return; }
+  }
+  if(!sessions.length){
+    el.innerHTML=(sbOK?'':'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:11px;color:var(--text2);margin-bottom:10px">Supabase未接続 — ローカルモード</div>')+
+      '<div style="color:var(--text2);font-size:12px;padding:8px 0">セッションなし。「+ 新規」から作成してください。</div>';
+    return;
+  }
+  const listHtml=sessions.map(s=>`
+    <div class="session-card ${curSession&&curSession.id===s.id?'active-session':''}" onclick="selectSession('${s.id}')">
+      <div class="session-dot ${s.status==='active'?'active':'finished'}"></div>
+      <div class="session-info">
+        <div class="session-name">${s.label||'無題'}</div>
+        <div class="session-meta">${s.player_count}人 / ${new Date(s.created_at).toLocaleString('ja-JP')} / ${s.status==='active'?'進行中':'終了'}</div>
+      </div>
+      <div class="session-actions" onclick="event.stopPropagation()">
+        ${s.status==='active'?`<button class="btn btn-xs" onclick="finishSession('${s.id}')">終了</button>`:''}
+        <button class="btn btn-xs btn-red" onclick="deleteSession('${s.id}')">削除</button>
+      </div>
+    </div>`).join('');
+  el.innerHTML=(sbOK?'':'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px;font-size:11px;color:var(--text2);margin-bottom:10px">Supabase未接続 — ローカルモード</div>')+listHtml;
+}
+
+async function createSession(){
+  const label=document.getElementById('nsLabel').value.trim()||'新規セッション';
+  // 重複名チェック
+  if(sessions.some(s=>s.label===label)){
+    document.getElementById('nsErrMsg').textContent='同じ名前のセッションがすでに存在します。別の名前を入力してください。';
+    return;
+  }
+  document.getElementById('nsErrMsg').textContent='';
+  let n=parseInt(document.getElementById('nsCount').value)||6;
+  n=Math.min(15,Math.max(3,n));
+  const bps=parseInt(document.getElementById('nsBarsPerSector').value)||6;
+  const tc=parseInt(document.getElementById('nsTurnCount').value)||5;
+  const tm=parseInt(document.getElementById('nsTurnMinutes').value)||10;
+  const mc=Math.max(0,parseInt(document.getElementById('nsMinusCards').value)||3);
+  const pc=Math.max(0,parseInt(document.getElementById('nsPlusCards').value)||1);
+  // PHANTOM: 奇数人なら +1 ファントム空席を最初から含めて保存（場所決め候補に P を出すため）
+  const ps=Array.from({length:n},(_,i)=>({alpha:ALPHA[i],name:'プレイヤー'+(i+1),medals:n,origIdx:i}));
+  if(n%2===1 && n>=3){
+    ps.push({alpha:ALPHA[n], name:'(空席)', medals:0, origIdx:-1, isPhantom:true});
+  }
+  const totalSpokes=ps.length;
+
+  // ── 拡張ルール設定の収集 ──
+  const ruleVersion=document.querySelector('input[name="nsRuleVersion"]:checked')?.value||'old';
+  const prizeMode=document.querySelector('input[name="nsPrizeMode"]:checked')?.value||'A';
+  const rulesConfig={
+    ruleVersion,
+    prizeMode,
+    prizeA: Math.max(1,parseInt(document.getElementById('nsPrizeA').value)||100000000),
+    prizeB1: Math.max(1,parseInt(document.getElementById('nsPrizeB1').value)||60000000),
+    prizeB2: Math.max(1,parseInt(document.getElementById('nsPrizeB2').value)||30000000),
+    prizeB3: Math.max(1,parseInt(document.getElementById('nsPrizeB3').value)||10000000),
+    hiddenLines: !!document.getElementById('nsHiddenLines').checked,
+    permaLock: !!document.getElementById('nsPermaLock').checked,
+    flow: !!document.getElementById('nsFlow').checked,
+    // 新ルール: 場所決め再投票1回限定（new時のみ true）
+    placeReVoteOnce: ruleVersion==='new',
+    hidePlaceResults: !!document.getElementById('nsHidePlaceResults').checked
+  };
+
+  // bars の総本数: 不可視線ONなら 1 row 余分（row=0 を hidden として確保）
+  const totalRows=bps+(rulesConfig.hiddenLines?1:0);
+  const bs=Array(totalSpokes*totalRows).fill(true);
+  // 不可視線ON時、row=0 の N 本は初期 hidden（= dead）
+  if(rulesConfig.hiddenLines){
+    for(let s=0;s<totalSpokes;s++){ bs[s]=false; }
+  }
+  const meta={barsPerSector:bps,totalTurns:tc,turnMinutes:tm,minusCardCount:mc,plusCardCount:pc,
+    rulesConfig,
+    barsHidden: rulesConfig.hiddenLines ? Array.from({length:totalSpokes},(_,s)=>s) : [],
+    barsLocked: []
+  };
+  closeModal('newSessionModal');
+  if(sbOK){
+    setSbStatus('busy');
+    try{
+      const res=await sbFetch('amida_sessions',{method:'POST',body:JSON.stringify({label,player_count:n,players:ps,bars:bs,status:'active',meta})});
+      const s=res[0];
+      sessions.unshift(s);
+      addLog('ok',`セッション作成(DB): ${label}`);
+      setSbStatus('ok');
+      await selectSession(s.id);
+      loadSessions();
+    }catch(e){setSbStatus('err');addLog('err','作成失敗: '+e.message);}
+  } else {
+    const localId='local_'+Date.now();
+    const s={id:localId,label,player_count:n,players:ps,bars:bs,status:'active',meta,created_at:new Date().toISOString()};
+    sessions.unshift(s);
+    addLog('warn',`セッション作成(ローカル): ${label}`);
+    await selectSession(localId);
+    loadSessions();
+  }
+}
+
+async function selectSession(id){
+  const s=sessions.find(x=>x.id===id);
+  if(!s) return;
+  curSession=s;
+  _LS.set('amida_last_session', id);
+  const meta=s.meta||{};
+  // 拡張ルール: meta.rulesConfig が無い旧セッションはデフォルト値で動作
+  rulesConfig = Object.assign({...DEFAULT_RULES_CONFIG}, meta.rulesConfig||{});
+  barsHidden = Array.isArray(meta.barsHidden) ? [...meta.barsHidden] : [];
+  barsLocked = Array.isArray(meta.barsLocked) ? [...meta.barsLocked] : [];
+  voterEdgeMinusCount = (typeof meta.voterEdgeMinusCount==='object' && meta.voterEdgeMinusCount) ? {...meta.voterEdgeMinusCount} : {};
+  barsPerSector=meta.barsPerSector||(s.player_count>0?Math.round(s.bars.length/s.player_count):6)||6;
+  minusCardCount=(typeof meta.minusCardCount==='number')?meta.minusCardCount:3;
+  plusCardCount=(typeof meta.plusCardCount==='number')?meta.plusCardCount:1;
+  totalTurns=meta.totalTurns||5;
+  turnMinutes=meta.turnMinutes||10;
+  players=s.players.map((p,i)=>({...p,medals:p.medals??s.player_count}));
+  // 旧セッション救済: ALPHA 拡張前 (15文字) に作成された場合、ファントムの alpha が undefined
+  // のまま保存されていることがあるので、index ベースで再設定する
+  players.forEach((p,i)=>{ if(!p.alpha) p.alpha=ALPHA[i]; });
+  // PHANTOM: 奇数人セッションをロードした場合、ファントムが未追加なら自動で末尾に追加
+  // （createSession 時点では追加していないため、15人セッションでは P が場所決め候補に出ない問題を防ぐ）
+  const _hadPhantomBefore=players.some(isPhantom);
+  addPhantomIfNeeded();
+  const _phantomAdded=!_hadPhantomBefore && players.some(isPhantom);
+  bars=[...s.bars];
+  // ファントムを新規追加した場合、bars もファントム分の barsPerSector 本を末尾に追加して整合
+  if(_phantomAdded){
+    const _bps=barsPerSector;
+    const _needed=players.length*_bps;
+    while(bars.length<_needed) bars.push(true);
+  }
+  medals=players.map(p=>p.medals);
+  chips=Array(players.length).fill(0);
+  chipsConfirmed=false;
+  // 初期状態は全横線true、その後period_logsから各ターン末の状態を復元
+  const initBarsLen=s.player_count*(meta.barsPerSector||barsPerSector);
+  barsHistory={0:Array(initBarsLen).fill(true)};
+  periodLogs={};
+  voteInputState=meta.voteInputState||{};
+  lostRight={};
+  if(sbOK&&!s.id.startsWith('local_')){
+    try{
+      const pLogs=await sbFetch('amida_period_logs?session_id=eq.'+s.id+'&select=period,bars_after,results,votes&order=period.asc');
+      pLogs.forEach(l=>{
+        if(Array.isArray(l.bars_after)) barsHistory[l.period]=[...l.bars_after];
+        if(l.results){
+          periodLogs[l.period]={
+            flow:l.results.flow||false,
+            barChanges:l.results.barChanges||[],
+            log:l.results.log||[],
+            perPlayerResults:l.results.perPlayerResults||{}
+          };
+          // lostRightを最新ターンから再構築
+          if(Array.isArray(l.results.lostRight)){
+            l.results.lostRight.forEach(i=>{ lostRight[i]=true; });
+          }
+        }
+        // voteInputState が meta に無い旧セッション対策: period_logs.votes から復元
+        if(!voteInputState[l.period] && Array.isArray(l.votes)){
+          const nn=players.length;
+          const decode=(barNum)=>{
+            if(barNum==null||barNum===undefined) return {alpha:'',num:''};
+            const idx=Number(barNum)-1;
+            if(idx<0) return {alpha:'',num:''};
+            return {alpha:ALPHA[idx%nn], num:String(Math.floor(idx/nn)+1)};
+          };
+          const state={};
+          l.votes.forEach(v=>{
+            const i=v.player_idx;
+            state['vm_'+i]=decode(v.minus1);
+            state['vm2_'+i]=decode(v.minus2);
+            state['vp_'+i]=decode(v.plus);
+          });
+          voteInputState[l.period]=state;
+        }
+      });
+    }catch(e){ addLog('warn','ターン履歴復元失敗: '+e.message); }
+  }
+  period=1;
+  document.getElementById('sessionName').textContent=s.label;
+  addLog('info',`セッション選択: ${s.label} (${players.length}人)`);
+  syncSetupUI();
+  // 場所決め投票の状態をmetaから復元
+  restorePlaceVoteFromMeta(meta);
+  renderSetup();renderVote();renderAmida();renderResult();renderTurnPager();
+  loadSessions();
+}
+
+function syncSetupUI(){
+  const pc=document.getElementById('playerCount');
+  const bps=document.getElementById('barsPerSector');
+  const tc=document.getElementById('turnCount');
+  const tm=document.getElementById('turnMinutes');
+  if(pc) pc.value=players.length;
+  if(bps) bps.value=barsPerSector;
+  if(tc) tc.value=totalTurns;
+  if(tm) tm.value=turnMinutes;
+}
+
+async function saveSession(){
+  if(!curSession) return;
+  if(!sbOK||curSession.id.startsWith('local_')){addLog('warn','ローカルモード — メモリのみ');return;}
+  setSbStatus('busy');
+  try{
+    // 既存 meta を保ったまま上書き（chips, placeHistory 等を失わない）
+    const existingMeta=curSession.meta||{};
+    const meta=Object.assign({}, existingMeta, {
+      barsPerSector,totalTurns,turnMinutes,
+      minusCardCount,plusCardCount,
+      chips:[...chips], chipsConfirmed,
+      voteInputState,
+      // 拡張ルール関連
+      rulesConfig: {...rulesConfig},
+      barsHidden: [...barsHidden],
+      barsLocked: [...barsLocked],
+      voterEdgeMinusCount: {...voterEdgeMinusCount}
+    });
+    curSession.meta=meta;
+    await sbFetch('amida_sessions?id=eq.'+curSession.id,{method:'PATCH',body:JSON.stringify({
+      players:players.map((p,i)=>({...p,medals:medals[i]})),bars:[...bars],meta
+    })});
+    setSbStatus('ok');addLog('ok','セッション保存');
+  }catch(e){setSbStatus('err');addLog('err','保存失敗: '+e.message);}
+}
+async function saveBarState(){
+  if(!curSession) return;
+  if(!sbOK||curSession.id.startsWith('local_')){addLog('warn','ローカルモード');return;}
+  setSbStatus('busy');
+  try{
+    await sbFetch('amida_sessions?id=eq.'+curSession.id,{method:'PATCH',body:JSON.stringify({bars:[...bars]})});
+    setSbStatus('ok');addLog('ok','アミダ状態保存');
+  }catch(e){setSbStatus('err');addLog('err','保存失敗: '+e.message);}
+}
+
+function deleteSession(id){
+  confirm2('このセッションを削除しますか？\nこの操作は取り消せません。',async()=>{
+    if(sbOK&&!id.startsWith('local_')){
+      setSbStatus('busy');
+      try{
+        await sbFetch('amida_sessions?id=eq.'+id,{method:'DELETE',headers:{'Prefer':'return=minimal','Content-Type':'application/json'}});
+        setSbStatus('ok');addLog('ok','DB削除完了');
+      }catch(e){setSbStatus('err');addLog('err','DB削除失敗: '+e.message);}
+    }
+    sessions=sessions.filter(s=>s.id!==id);
+    if(curSession&&curSession.id===id){
+      curSession=null;players=[];bars=[];medals=[];lostRight={};
+      _LS.remove('amida_last_session');
+      document.getElementById('sessionName').textContent='セッション未選択';
+      document.getElementById('playerListSetup').innerHTML='';
+      document.getElementById('voteArea').innerHTML='';
+      document.getElementById('resultContent').innerHTML='';
+    }
+    addLog('ok','セッション削除: '+id);
+    loadSessions();
+  });
+}
+
+function finishSession(id){
+  confirm2('このセッションを終了しますか？',async()=>{
+    const s=sessions.find(x=>x.id===id);
+    if(s) s.status='finished';
+    if(sbOK&&!id.startsWith('local_')){
+      try{ await sbFetch('amida_sessions?id=eq.'+id,{method:'PATCH',body:JSON.stringify({status:'finished'})}); }
+      catch(e){addLog('err',e.message);}
+    }
+    loadSessions();addLog('ok','セッション終了');
+  });
+}
+
+// ── SETUP ──
+function initPlayers(){
+  if(!curSession){alert('先にセッションを選択してください');return;}
+  const n=Math.min(15,Math.max(3,parseInt(document.getElementById('playerCount').value)||6));
+  const bps=Math.max(1,parseInt(document.getElementById('barsPerSector').value)||6);
+  const tc=Math.max(1,parseInt(document.getElementById('turnCount').value)||5);
+  const tm=Math.max(1,parseInt(document.getElementById('turnMinutes').value)||10);
+  barsPerSector=bps; totalTurns=tc; turnMinutes=tm;
+  players=Array.from({length:n},(_,i)=>({alpha:ALPHA[i],name:'プレイヤー'+(i+1),medals:n}));
+  // PHANTOM: 奇数なら末尾へファントム追加し、N_total を偶数化
+  addPhantomIfNeeded();
+  const total=players.length;
+  medals=players.map(p=>isPhantom(p)?0:n);  // PHANTOM: ファントムにはメダル配布なし
+  chips=Array(total).fill(0);
+  chipsConfirmed=false;
+  bars=Array(total*bps).fill(true);
+  barsHistory={0:[...bars]};
+  periodLogs={};
+  period=1;lostRight={};
+  if(players.some(isPhantom)){
+    addLog('info', `PHANTOM: 奇数(${n}人)のためファントム空席を ${ALPHA[n]} に追加 → 合計 ${total} 席`);
+  }
+  renderSetup();renderVote();renderAmida();renderResult();renderTurnPager();
+  initPlaceVote();
+}
+
+function renderSetup(){
+  if(!curSession || !players.length){
+    document.getElementById('playerListSetup').innerHTML=`
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;color:var(--text2);font-size:12px;line-height:1.6">
+        セッションが選択されていません。<br>
+        左メニューの<b>「セッション管理」</b>から既存セッションを選択するか、<b>「+ 新規」</b>から新しいセッションを作成してください。
+      </div>`;
+    document.getElementById('setupMetrics').innerHTML='';
+    return;
+  }
+  const n=players.length;
+  // origIdx昇順（P1,P2,...順）でソートしたインデックスリストを作成
+  const sorted=Array.from({length:n},(_,i)=>i)
+    .sort((a,b)=>{
+      const oa=players[a].origIdx!==undefined?players[a].origIdx:a;
+      const ob=players[b].origIdx!==undefined?players[b].origIdx:b;
+      return oa-ob;
+    });
+  document.getElementById('playerListSetup').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px">
+      ${sorted.map(i=>{
+        const p=players[i];
+        const pNum=(p.origIdx!==undefined)?p.origIdx+1:i+1;
+        return `<div style="display:flex;align-items:center;gap:5px;padding:5px 7px;background:var(--bg2);border-radius:5px;border:1px solid var(--border)">
+          <div style="width:22px;height:22px;border-radius:3px;background:var(--bg3);border:1px solid var(--border2);color:var(--text1);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${pNum}</div>
+          <input type="text" value="${p.name}" style="flex:1;min-width:0;padding:2px 5px;font-size:11px" placeholder="名前" onchange="players[${i}].name=this.value;renderVote();renderResult();renderPlacePanel()">
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:8px;font-size:11px;color:var(--text2)">
+      ※ アルファベット（場所）は場所決め投票で確定します
+    </div>
+    <div style="margin-top:10px">
+      <button class="btn btn-green btn-sm" onclick="saveSession()">保存・確定</button>
+    </div>`;
+  document.getElementById('setupMetrics').innerHTML=`
+    <div class="metric"><div class="metric-label">参加人数</div><div class="metric-value">${n}</div><div class="metric-sub">人</div></div>
+    <div class="metric"><div class="metric-label">横線/区間</div><div class="metric-value">${barsPerSector}</div><div class="metric-sub">本</div></div>
+    <div class="metric"><div class="metric-label">総横線数</div><div class="metric-value">${bars.length}</div><div class="metric-sub">本</div></div>
+    <div class="metric"><div class="metric-label">ターン数</div><div class="metric-value">${totalTurns}</div><div class="metric-sub">回</div></div>
+    <div class="metric"><div class="metric-label">1ターン</div><div class="metric-value">${turnMinutes}</div><div class="metric-sub">分</div></div>`;
+}
+
+// ── VOTE ──
+function renderPeriodBar(){
+  document.getElementById('curP').textContent=period;
+  document.getElementById('totalPDisp').textContent=totalTurns;
+  document.getElementById('periodBar').innerHTML=Array.from({length:totalTurns},(_,i)=>{
+    const n=i+1;
+    const c=n<period?'done':n===period?'current':'';
+    return `<div class="pdot ${c}" onclick="period=${n};renderPeriodBar();renderVote()">${n}</div>`;
+  }).join('');
+}
+
+function renderVote(){
+  if(!players.length){document.getElementById('voteArea').innerHTML='<div style="color:var(--text2);font-size:12px">セットアップを先に完了してください</div>';return;}
+  renderPeriodBar();
+  const isLocked=!!periodLogs[period];
+  const n=players.length;
+  // 横線のセクター識別アルファベットは常にA〜N（n人分）の固定順
+  // players[i].alpha の順番に依存しない（場所決め後の並び替えがあっても同じA〜N）
+  const sectorAlphas=Array.from({length:n},(_,i)=>ALPHA[i]);
+  const alphaOpts=sectorAlphas.map(a=>`<option value="${a}">${a}</option>`).join('');
+  // 拡張ルール: 不可視線ONなら 0（裏ルール用）も選択肢に追加。表示は 0,1,2,...,barsPerSector
+  const rowsForVote = rulesConfig.hiddenLines ? barsPerSector+1 : barsPerSector;
+  const numOpts=Array.from({length:rowsForVote},(_,i)=>{
+    const v = rulesConfig.hiddenLines ? i : (i+1);  // 不可視線ON時は0始まり、OFF時は1始まり
+    return `<option value="${v}">${v}</option>`;
+  }).join('');
+
+  function voteInput(id,lbl,optional){
+    // ロック中はプルダウン UI を残しつつ disabled で表示する
+    // → 確定状態でも投票内容が見え、解除時にそのままプルダウン選択を保持できる
+    const dis=isLocked?'disabled':'';
+    const onA=isLocked?'':` onchange="syncVIAlpha('${id}')"`;
+    const onN=isLocked?'':` onchange="syncVINum('${id}')"`;
+    return `<div style="min-width:0">
+      <div style="font-size:9px;color:var(--text2);margin-bottom:2px">${lbl}</div>
+      <div style="display:flex;gap:2px;align-items:center">
+        <select id="${id}_alpha" ${dis}${onA} style="flex:1;min-width:0;font-size:11px;padding:2px 2px${isLocked?';background:var(--bg3);color:var(--text0);opacity:1':''}">
+          <option value="">${optional?'―':'未'}</option>${alphaOpts}
+        </select>
+        <select id="${id}_num" ${dis}${onN} style="width:36px;font-size:11px;padding:2px 2px${isLocked?';background:var(--bg3);color:var(--text0);opacity:1':''}">
+          <option value="">-</option>${numOpts}
+        </select>
+      </div>
+    </div>`;
+  }
+
+  // ロック時のバナー
+  const lockedBanner=isLocked?`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;margin-bottom:10px">
+      <span style="font-size:12px;color:var(--green)">✓ T${period} 集計済み・保存済み</span>
+      <button class="btn btn-sm" onclick="unlockVote()" style="font-size:11px">解除</button>
+    </div>`:'';
+
+  // 投票集計は「セットアップ時の番号（origIdx）順」で表示する
+  // players配列は場所決め後にアミダ位置順に並び替えられているため、
+  // 表示用にorigIdx昇順でソートしたインデックスを作成する
+  // PHANTOM: ファントム空席は投票しないため除外
+  const sortedIndices=Array.from({length:n},(_,i)=>i)
+    .filter(i=>!isPhantom(players[i]))
+    .sort((a,b)=>{
+      const oa=players[a].origIdx!==undefined?players[a].origIdx:a;
+      const ob=players[b].origIdx!==undefined?players[b].origIdx:b;
+      return oa-ob;
+    });
+
+  // 処理結果ログ廃止 → ロック時は各プレイヤーの結果を直下に表示
+  const curLog=periodLogs[period];
+  const perPlayerResults=(curLog && curLog.perPlayerResults) ? curLog.perPlayerResults : {};
+
+  // Mac 13.3 (CSS 1280x800) で全員分を縦スクロールなしで表示するため、3列レイアウト＋抑えめフォント
+  document.getElementById('voteArea').innerHTML=lockedBanner+`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+      ${sortedIndices.map(i=>{
+        const p=players[i];
+        const lost=lostRight[i];
+        const playerNum=(p.origIdx!==undefined)?p.origIdx+1:i+1;
+        // フォントは既存の約 1.5倍程度に抑え、視認性と省スペースの両立
+        const alphaLabel=p.alpha
+          ?`<span class="badge badge-purple" style="font-size:15px;padding:2px 8px;font-weight:700;letter-spacing:.04em">${p.alpha}</span>`
+          :'';
+        const myRes=perPlayerResults[i] || perPlayerResults[String(i)];
+        let resultHtml='';
+        if(isLocked && Array.isArray(myRes) && myRes.length){
+          resultHtml=`<div class="vote-result-inline">${myRes.map(r=>{
+            const tcl='vri-'+(r.tone||'warn');
+            const bar=r.barLabel?`<span class="vri-bar">${r.barLabel}</span>`:'';
+            return `<div class="vri-row"><span class="vri-label">${r.label}</span>${bar?bar+' →':''} <span class="${tcl}">${r.status}</span></div>`;
+          }).join('')}</div>`;
+        }
+        return `<div class="vote-card ${lost?'lost':''}${isLocked?' locked':''}">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+            <div style="width:32px;height:32px;border-radius:4px;background:var(--bg3);border:1px solid var(--border2);color:var(--text0);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${playerNum}</div>
+            <span style="font-size:16px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;letter-spacing:.02em">${p.name}</span>
+            ${alphaLabel}
+            ${lost?'<span class="badge badge-red" style="font-size:10px;padding:1px 5px">権なし</span>':''}
+          </div>
+          ${!lost?`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px">
+            ${voteInput('vm_'+i,'マイナス①',false)}
+            ${voteInput('vm2_'+i,'マイナス②',true)}
+            ${voteInput('vp_'+i,'プラス',false)}
+          </div>`:''}
+          ${resultHtml}
+        </div>`;
+      }).join('')}
+    </div>`;
+  // ロック中も含め常にプルダウンの値を復元する（DOM 構築後）
+  restoreVoteInputState();
+  // 処理結果ログ表示は廃止
+  document.getElementById('voteResultArea').innerHTML='';
+}
+
+async function unlockVote(){
+  if(!periodLogs[period]) return;
+  if(!confirm(`T${period} の集計を解除しますか？\n横線への変更も元に戻ります。`)) return;
+  // barを前のターンの状態に戻す
+  const prevBars=barsHistory[period-1]||barsHistory[0]||Array(bars.length).fill(true);
+  bars=[...prevBars];
+  barsHistory[period]=[...bars];
+  // periodLogを削除
+  delete periodLogs[period];
+  // voteInputStateは解除後も入力内容を保持（再編集できるように）
+  addLog('warn',`T${period} 集計解除 — 再編集可能`);
+  // Supabase から該当ターンのログを削除
+  if(sbOK&&curSession&&!curSession.id.startsWith('local_')){
+    try{
+      await sbFetch(`amida_period_logs?session_id=eq.${curSession.id}&period=eq.${period}`,{method:'DELETE'});
+      // barsとvoteInputStateも更新
+      const existingMeta=curSession.meta||{};
+      const newMeta=Object.assign({},existingMeta,{voteInputState});
+      curSession.meta=newMeta;
+      await sbFetch('amida_sessions?id=eq.'+curSession.id,{method:'PATCH',body:JSON.stringify({
+        bars:[...bars],
+        meta:newMeta
+      })});
+      addLog('ok',`T${period} DBから削除完了`);
+    }catch(e){ addLog('err','解除保存失敗: '+e.message); }
+  }
+  renderVote();renderAmida();renderTurnPager();renderResult();
+}
+
+// アルファベット＋数字セレクトの同期（変更時に互いをリセットしない）
+function syncVIAlpha(id){ /* 選択肢は独立、読み取りはgetVI2で行う */ }
+function syncVINum(id){ /* 同上 */ }
+
+// アルファベット+数字→barのidxを返す（0-indexed）
+// 拡張ルール: 不可視線ON時は num=0 が row=0、num=1 が row=1、…
+// 不可視線OFF時は num=1 が row=0、num=2 が row=1、…
+function barLabelToIdx(alpha, num, n){
+  const sector=ALPHA.indexOf(alpha);
+  const numInt=parseInt(num);
+  const row = rulesConfig.hiddenLines ? numInt : (numInt-1);
+  if(sector<0||row<0) return null;
+  return sector+row*n;
+}
+
+// 投票値取得（アルファベット+数字の両セレクトが揃っているか確認）
+function getVI(id){
+  const alphaSel=document.getElementById(id+'_alpha');
+  const numSel=document.getElementById(id+'_num');
+  if(!alphaSel||!numSel) return null;
+  const a=alphaSel.value, nm=numSel.value;
+  if(!a||!nm) return null;
+  // idx（1-indexed）に変換して返す
+  const n=players.length;
+  const idx=barLabelToIdx(a, nm, n);
+  if(idx===null||idx<0||idx>=bars.length) return null;
+  return String(idx+1); // calcVotesが期待する1-indexed文字列
+}
+
+// 投票入力状態をターンごとに保存
+let voteInputState={};  // {period: {vm_i:{alpha,num}, vm2_i:{alpha,num}, vp_i:{alpha,num}}}
+
+function saveVoteInputState(){
+  const state={};
+  players.forEach((_,i)=>{
+    ['vm','vm2','vp'].forEach(prefix=>{
+      const id=`${prefix}_${i}`;
+      const aSel=document.getElementById(id+'_alpha');
+      const nSel=document.getElementById(id+'_num');
+      if(aSel&&nSel) state[id]={alpha:aSel.value,num:nSel.value};
+    });
+  });
+  voteInputState[period]=state;
+}
+
+function restoreVoteInputState(){
+  const state=voteInputState[period];
+  if(!state) return;
+  Object.entries(state).forEach(([id,vals])=>{
+    const aSel=document.getElementById(id+'_alpha');
+    const nSel=document.getElementById(id+'_num');
+    if(aSel) aSel.value=vals.alpha||'';
+    if(nSel) nSel.value=vals.num||'';
+  });
+}
+
+function adjPeriod(d){
+  saveVoteInputState();
+  period=Math.max(1,Math.min(totalTurns,period+d));
+  renderPeriodBar();renderVote();
+  restoreVoteInputState();
+}
+
+async function calcVotes(){
+  if(!players.length) return;
+  // 半入力チェック（アルファベットのみ or 数字のみ）
+  const halfErrors=[];
+  players.forEach((p,i)=>{
+    if(lostRight[i]) return;
+    ['vm','vm2','vp'].forEach(prefix=>{
+      const id=`${prefix}_${i}`;
+      const aSel=document.getElementById(id+'_alpha');
+      const nSel=document.getElementById(id+'_num');
+      if(!aSel||!nSel) return;
+      const hasA=!!aSel.value, hasN=!!nSel.value;
+      if(hasA!==hasN){ // 片方だけ入力
+        const label=prefix==='vm'?'マイナス①':prefix==='vm2'?'マイナス②':'プラス';
+        halfErrors.push(`${p.name}の${label}: アルファベットと数字の両方を入力してください`);
+      }
+    });
+  });
+  if(halfErrors.length>0){
+    alert('入力エラー:\n'+halfErrors.join('\n'));
+    return;
+  }
+  let msgs=[],flow=false,barChanges=[];
+  const minusV={},plusV={},notVoted=[],votesArr=[];
+  const playerVotes={};  // {i: {m1, m2, pl}}
+  // ── 拡張ルール: ルール3で永久ロック確定したプレイヤー/ルール4で流れ発動したプレイヤー ──
+  const lockedByPlayer={};   // {playerIdx: [edgeIdx,...]}
+  const flowedPlayers=new Set();  // ルール4で〈流れ〉発動したプレイヤー
+  players.forEach((p,i)=>{
+    // PHANTOM: ファントムは投票しない・〈流れ〉判定対象外
+    if(isPhantom(p)){ votesArr.push({player_idx:i,minus1:null,minus2:null,plus:null,phantom:true}); return; }
+    if(lostRight[i]){votesArr.push({player_idx:i,minus1:null,minus2:null,plus:null});return;}
+    let m1=getVI('vm_'+i), m2=getVI('vm2_'+i), pl=getVI('vp_'+i);
+    playerVotes[i]={m1,m2,pl};
+    votesArr.push({player_idx:i,minus1:m1?+m1:null,minus2:m2?+m2:null,plus:pl?+pl:null});
+    if(!m1&&!m2&&!pl) notVoted.push(i);
+
+    // ── ルール3: 同一線2連投で永久ロック（同一ターン内 m1=m2） ──
+    if(rulesConfig.permaLock && m1 && m2 && m1===m2){
+      const edgeIdx=+m1-1;
+      if(!isLocked(edgeIdx)){
+        barsLocked.push(edgeIdx);
+        bars[edgeIdx]=false;
+        barChanges.push({num:+m1, action:'永久ロック'});
+        msgs.push(`🔒 P${i+1} ${barLabel(edgeIdx,players.length)} 同一線2連投で永久ロック`);
+      }
+      (lockedByPlayer[i]=lockedByPlayer[i]||[]).push(edgeIdx);
+      // ルール3優先: この投票は消費済み → ルール4の流れ判定対象外
+      m1=null; m2=null;
+      playerVotes[i].m1=null; playerVotes[i].m2=null;
+    }
+
+    // ── ルール3: 同一線2連投（累積=ターンまたぎ）でも永久ロック ──
+    if(rulesConfig.permaLock){
+      [['m1',m1],['m2',m2]].forEach(([key,val])=>{
+        if(!val) return;
+        const edgeIdx=+val-1;
+        const ck=`${i}_${edgeIdx}`;
+        const cnt=(voterEdgeMinusCount[ck]||0)+1;
+        voterEdgeMinusCount[ck]=cnt;
+        if(cnt>=2 && !isLocked(edgeIdx)){
+          barsLocked.push(edgeIdx);
+          bars[edgeIdx]=false;
+          barChanges.push({num:+val, action:'永久ロック(累積)'});
+          msgs.push(`🔒 P${i+1} ${barLabel(edgeIdx,players.length)} 同一線2連投(累積)で永久ロック`);
+          (lockedByPlayer[i]=lockedByPlayer[i]||[]).push(edgeIdx);
+          if(key==='m1') { m1=null; playerVotes[i].m1=null; }
+          if(key==='m2') { m2=null; playerVotes[i].m2=null; }
+        }
+      });
+    }
+
+    // ── ルール4 解釈A: 同一プレイヤーが異なる線へマイナス2枚 → そのプレイヤーのマイナス全部無効 ──
+    if(rulesConfig.flow && m1 && m2 && m1!==m2){
+      flow=true;
+      flowedPlayers.add(i);
+      msgs.push(`⚡ P${i+1} 異なる線にマイナス2枚 →〈流れ〉発動 (P${i+1}のマイナスのみ無効)`);
+      m1=null; m2=null;
+      playerVotes[i].m1=null; playerVotes[i].m2=null;
+    }
+
+    // 通常の集計対象に登録
+    if(m1){const k=+m1;(minusV[k]=minusV[k]||[]).push(i);}
+    if(m2 && m2!==m1){const k=+m2;(minusV[k]=minusV[k]||[]).push(i);}  // 2枚目も別線なら計上
+    if(pl){const k=+pl;(plusV[k]=plusV[k]||[]).push(i);}
+  });
+
+  // 横棒番号 → 結果（消去/復活/相殺/無効/ロック）のマップ
+  const barResultMap={};
+  // ロック済バーは結果マップに記録
+  Object.entries(lockedByPlayer).forEach(([_,arr])=>{
+    arr.forEach(idx=>{ barResultMap[idx+1]='永久ロック'; });
+  });
+  // 通常集計
+  const nums=new Set([...Object.keys(minusV),...Object.keys(plusV)].map(Number));
+  nums.forEach(num=>{
+    const idx=num-1;
+    // 既にロック済みのバーはどの投票も無効
+    if(isLocked(idx)){
+      barResultMap[num]='永久ロックで無効';
+      return;
+    }
+    let rm=(minusV[num]||[]).length,rp=(plusV[num]||[]).length;
+    const c=Math.min(rm,rp);rm-=c;rp-=c;
+    rm-=Math.floor(rm/2)*2;rp-=Math.floor(rp/2)*2;
+    const alive=bars[idx];
+    const lbl=barLabel(idx,players.length);
+    if(rm===1){
+      if(alive){bars[idx]=false;barChanges.push({num,action:'消去'});msgs.push(`${lbl}消去`);barResultMap[num]='消去';}
+      else {msgs.push(`${lbl}消去済→無効`);barResultMap[num]='消去済→無効';}
+    } else if(rp===1){
+      // 拡張ルール: 不可視線なら可視化＋復活
+      if(isHidden(idx)){
+        barsHidden=barsHidden.filter(x=>x!==idx);
+        bars[idx]=true;
+        barChanges.push({num,action:'可視化＋復活'});
+        msgs.push(`${lbl} 不可視線が可視化＋復活`);
+        barResultMap[num]='可視化＋復活';
+      } else if(!alive){
+        bars[idx]=true;barChanges.push({num,action:'復活'});msgs.push(`${lbl}復活`);barResultMap[num]='復活';
+      } else {
+        msgs.push(`${lbl}存在済→無効`);barResultMap[num]='存在済→無効';
+      }
+    } else if(rm===0&&rp===0&&(minusV[num]||plusV[num])){
+      msgs.push(`${lbl}相殺`);barResultMap[num]='相殺';
+    }
+  });
+
+  const newLost={...lostRight};
+  notVoted.forEach(i=>{if(!lostRight[i]){newLost[i]=true;msgs.push(`${players[i].name}→次T投票権喪失`);}});
+
+  // ── 各プレイヤーの結果を組み立て（インライン表示用）──
+  // 拡張ルール: ルール3で永久ロック消費されたカードは消費済扱い、ルール4で流れ発動はそのプレイヤーのみ無効
+  const n=players.length;
+  const perPlayerResults={};
+  // 元の投票（クリア前）を取得するため votesArr を参照
+  const origVotes={};
+  votesArr.forEach(v=>{ origVotes[v.player_idx]={m1:v.minus1, m2:v.minus2, pl:v.plus}; });
+  Object.entries(origVotes).forEach(([iStr,ov])=>{
+    const i=+iStr;
+    const parts=[];
+    const wasLocked = (lockedByPlayer[i]||[]).length>0;
+    const wasFlowed = flowedPlayers.has(i);
+    if(ov.m1){
+      const lbl=barLabel(ov.m1-1, n);
+      if(wasLocked && (ov.m1===ov.m2 || (lockedByPlayer[i]||[]).includes(ov.m1-1))){
+        parts.push({label:'マイナス①', barLabel:lbl, status:'永久ロックに消費 🔒', tone:'flow'});
+      } else if(wasFlowed){
+        parts.push({label:'マイナス①', barLabel:lbl, status:'〈流れ〉により無効', tone:'flow'});
+      } else {
+        parts.push({label:'マイナス①', barLabel:lbl, status:barResultMap[ov.m1]||'無効', tone:barResultMap[ov.m1]==='消去'?'ok':barResultMap[ov.m1]==='相殺'?'warn':barResultMap[ov.m1]==='永久ロック'?'flow':'bad'});
+      }
+    }
+    if(ov.m2){
+      const lbl=barLabel(ov.m2-1, n);
+      if(wasLocked && (ov.m1===ov.m2 || (lockedByPlayer[i]||[]).includes(ov.m2-1))){
+        parts.push({label:'マイナス②', barLabel:lbl, status:'永久ロックに消費 🔒', tone:'flow'});
+      } else if(wasFlowed){
+        parts.push({label:'マイナス②', barLabel:lbl, status:'〈流れ〉により無効', tone:'flow'});
+      } else {
+        parts.push({label:'マイナス②', barLabel:lbl, status:barResultMap[ov.m2]||'無効', tone:barResultMap[ov.m2]==='消去'?'ok':barResultMap[ov.m2]==='相殺'?'warn':'bad'});
+      }
+    }
+    if(ov.pl){
+      const lbl=barLabel(ov.pl-1, n);
+      parts.push({label:'プラス', barLabel:lbl, status:barResultMap[ov.pl]||'無効', tone:barResultMap[ov.pl]==='復活'||barResultMap[ov.pl]==='可視化＋復活'?'ok':barResultMap[ov.pl]==='相殺'?'warn':'bad'});
+    }
+    if(!ov.m1 && !ov.m2 && !ov.pl){
+      parts.push({label:'未投票', barLabel:'', status:'次ターン投票権喪失', tone:'bad'});
+    }
+    perPlayerResults[i]=parts;
+  });
+  lostRight=newLost;
+  // 集計・保存後に入力をロック（現在の入力内容を保存してからロック）
+  saveVoteInputState();
+  barsHistory[period]=[...bars];
+  periodLogs[period]={flow,barChanges,log:[...msgs],perPlayerResults};
+  addLog('ok',`T${period}集計 — ${msgs.length}件`);
+  // Supabase保存（votes, results, bars_after に加えて voteInputState も meta に保存）
+  if(sbOK&&curSession&&!curSession.id.startsWith('local_')){
+    setSbStatus('busy');
+    try{
+      await sbFetch('amida_period_logs',{method:'POST',body:JSON.stringify({
+        session_id:curSession.id,period,votes:votesArr,
+        results:{flow,barChanges,lostRight:Object.keys(newLost).map(Number),log:msgs,perPlayerResults},
+        bars_after:[...bars]
+      })});
+      // voteInputState を meta に保存（ロック状態の復元用）＋ 拡張ルール状態
+      const existingMeta=curSession.meta||{};
+      const newMeta=Object.assign({},existingMeta,{
+        voteInputState,
+        barsHidden: [...barsHidden],
+        barsLocked: [...barsLocked],
+        voterEdgeMinusCount: {...voterEdgeMinusCount}
+      });
+      curSession.meta=newMeta;
+      await sbFetch('amida_sessions?id=eq.'+curSession.id,{method:'PATCH',body:JSON.stringify({
+        bars:[...bars],
+        meta:newMeta
+      })});
+      setSbStatus('ok');addLog('ok','Supabase保存完了');
+    }catch(e){setSbStatus('err');addLog('err','保存失敗: '+e.message);}
+  }
+  // 処理結果ログ表示は廃止。renderVote が各プレイヤー直下にインライン結果を描画する
+  document.getElementById('voteResultArea').innerHTML='';
+  renderVote();
+  renderAmida();renderTurnPager();renderResult();
+}
+
+// ── TURN PAGER ──
+function renderTurnPager(){
+  const n=totalTurns||5;
+  let html='';
+  for(let t=0;t<=n;t++){
+    const lbl=t===0?'初期':`T${t}`;
+    const hasl=t>0&&periodLogs[t];
+    const isCur=(t===period||(t===0&&period===1&&!periodLogs[1]));
+    html+=`<div class="turn-thumb ${isCur?'current-turn':''} ${hasl?'has-log':''}" onclick="viewTurn(${t})">${lbl}</div>`;
+  }
+  // 最終結果タブ
+  html+=`<div class="turn-thumb" onclick="viewFinal()" style="border-color:var(--gold);color:var(--gold)">最終結果</div>`;
+  document.getElementById('turnPager').innerHTML=html;
+  // 変更ログ表示
+  const pl=periodLogs[period];
+  const el=document.getElementById('turnChangeLog');
+  if(pl){
+    el.innerHTML=`T${period}: `+(pl.flow?'<span style="color:var(--red)">〈流れ〉発生</span> / ':'')+
+      pl.barChanges.map(c=>`<span style="color:${c.action==='消去'?'var(--text2)':'var(--green)'}">#${c.num}${c.action}</span>`).join(' ');
+  } else { el.innerHTML=period===1&&!periodLogs[1]?'初期状態':'ログなし'; }
+}
+
+// 同率最終生存者を色分けするための共通パレット（両ツールで同一色順）
+const SURVIVOR_PALETTE=['#ef9f27','#ff5a3a','#5aa0ff','#5dcaa5','#9f8fef','#ffd24a','#ff8ec4','#7adee6'];
+
+function viewFinal(){
+  const finalBarsData=barsHistory[totalTurns]||bars;
+  const svg=document.getElementById('amidaSvg');
+  const n=players.length;
+  const totalRows=Math.ceil(finalBarsData.length/n);
+
+  // 最終状態を描画
+  let html=drawAmidaSVG(finalBarsData,n,270,80,250,false);
+  svg.innerHTML=html;
+
+  // 消去済み横線を完全非表示
+  finalBarsData.forEach((alive,idx)=>{
+    if(!alive){
+      const line=svg.querySelector('#bar_'+idx);
+      const lbl=svg.querySelector('#barlbl_'+idx);
+      if(line){ line.style.display='none'; line.setAttribute('display','none'); }
+      if(lbl){  lbl.style.display='none';  lbl.setAttribute('display','none'); }
+    }
+  });
+
+  // 全プレイヤーのルートを計算
+  const routes=players.map((_,pi)=>traceRouteStatic(finalBarsData,pi,n));
+  const realRouteLens=routes.map((r,pi)=>isPhantom(players[pi])?Infinity:r.bars.size);
+  const minLen=Math.min(...realRouteLens);
+
+  // 最終生存者リスト + 色割当
+  const survivors=[];
+  routes.forEach((route,pi)=>{
+    if(isPhantom(players[pi])) return;
+    if(route.bars.size!==minLen) return;
+    survivors.push({pi,route});
+  });
+  const multi=survivors.length>1;
+  survivors.forEach((s,idx)=>{ s.color=multi?SURVIVOR_PALETTE[idx%SURVIVOR_PALETTE.length]:'#ef9f27'; });
+
+  // 各バー / スポークについて、利用しているサバイバーを列挙
+  // 共有箇所は stroke-dasharray で複数色の縞模様にする
+  function svrForBar(idx){ return survivors.filter(s=>s.route.bars.has(idx)); }
+  function svrForSpoke(key){ return survivors.filter(s=>s.route.spokes.has(key)); }
+
+  // バー処理
+  finalBarsData.forEach((alive,idx)=>{
+    if(!alive) return;
+    const users=svrForBar(idx);
+    if(!users.length) return;
+    const line=svg.querySelector('#bar_'+idx);
+    const lbl=svg.querySelector('#barlbl_'+idx);
+    if(!line) return;
+    if(users.length===1){
+      line.setAttribute('stroke',users[0].color);
+      line.setAttribute('stroke-width','5');
+      line.setAttribute('opacity','1');
+      if(lbl){ lbl.setAttribute('fill',users[0].color); lbl.setAttribute('opacity','1'); }
+    } else {
+      // 共有バー：dasharray で複数色の縞模様
+      // ベースの line を残しつつ、ラベル(text)の前にオーバーレイを挿入 → ラベルが最前面
+      line.setAttribute('stroke',users[0].color);
+      line.setAttribute('stroke-width','5');
+      line.setAttribute('opacity','1');
+      const x1=line.getAttribute('x1'),y1=line.getAttribute('y1'),x2=line.getAttribute('x2'),y2=line.getAttribute('y2');
+      const parent=line.parentNode;
+      const dashLen=6, totalDash=dashLen*users.length;
+      // ラベルがあれば ラベル直前にオーバーレイを挿入してラベルが上に来るようにする
+      const insertBefore=lbl||null;
+      users.forEach((u,ui)=>{
+        const overlay=document.createElementNS('http://www.w3.org/2000/svg','line');
+        overlay.setAttribute('x1',x1); overlay.setAttribute('y1',y1);
+        overlay.setAttribute('x2',x2); overlay.setAttribute('y2',y2);
+        overlay.setAttribute('stroke',u.color);
+        overlay.setAttribute('stroke-width','5');
+        overlay.setAttribute('stroke-linecap','butt');
+        overlay.setAttribute('stroke-dasharray',`${dashLen} ${totalDash-dashLen}`);
+        overlay.setAttribute('stroke-dashoffset', String(-dashLen*ui));
+        overlay.setAttribute('pointer-events','none');
+        if(insertBefore && insertBefore.parentNode===parent) parent.insertBefore(overlay, insertBefore);
+        else parent.appendChild(overlay);
+      });
+      if(lbl){
+        // ラベル背景を追加して読みやすく
+        const labelBg=document.createElementNS('http://www.w3.org/2000/svg','rect');
+        const mx=parseFloat(lbl.getAttribute('x')), my=parseFloat(lbl.getAttribute('y'));
+        labelBg.setAttribute('x', (mx-10).toFixed(1));
+        labelBg.setAttribute('y', (my-7).toFixed(1));
+        labelBg.setAttribute('width','20'); labelBg.setAttribute('height','14');
+        labelBg.setAttribute('rx','2');
+        labelBg.setAttribute('fill','rgba(0,0,0,.85)');
+        labelBg.setAttribute('pointer-events','none');
+        parent.insertBefore(labelBg, lbl);
+        lbl.setAttribute('fill','#fff');
+        lbl.setAttribute('opacity','1');
+      }
+    }
+  });
+
+  // スポーク処理
+  const seenSpokes={};
+  survivors.forEach(s=>{
+    s.route.spokes.forEach(key=>{
+      (seenSpokes[key]=seenSpokes[key]||[]).push(s);
+    });
+  });
+  Object.entries(seenSpokes).forEach(([key,users])=>{
+    const sep=key.indexOf(':');
+    const spoke=key.slice(0,sep);
+    const row=key.slice(sep+1);
+    const seg=svg.querySelector(`#spoke_${spoke}_${row}`);
+    if(!seg) return;
+    if(users.length===1){
+      seg.setAttribute('stroke',users[0].color);
+      seg.setAttribute('stroke-width','4');
+      seg.setAttribute('opacity','1');
+    } else {
+      seg.setAttribute('stroke',users[0].color);
+      seg.setAttribute('stroke-width','4');
+      seg.setAttribute('opacity','1');
+      const x1=seg.getAttribute('x1'),y1=seg.getAttribute('y1'),x2=seg.getAttribute('x2'),y2=seg.getAttribute('y2');
+      const parent=seg.parentNode;
+      const dashLen=6, totalDash=dashLen*users.length;
+      users.forEach((u,ui)=>{
+        if(ui===0) return; // primary already set
+        const overlay=document.createElementNS('http://www.w3.org/2000/svg','line');
+        overlay.setAttribute('x1',x1); overlay.setAttribute('y1',y1);
+        overlay.setAttribute('x2',x2); overlay.setAttribute('y2',y2);
+        overlay.setAttribute('stroke',u.color);
+        overlay.setAttribute('stroke-width','4');
+        overlay.setAttribute('stroke-linecap','butt');
+        overlay.setAttribute('stroke-dasharray',`${dashLen} ${totalDash-dashLen}`);
+        overlay.setAttribute('stroke-dashoffset', String(-dashLen*ui));
+        overlay.setAttribute('pointer-events','none');
+        parent.appendChild(overlay);
+      });
+    }
+  });
+
+  // 各プレイヤーラベルにも色を反映
+  survivors.forEach(s=>{
+    const rect=svg.querySelector('#plrect_'+s.pi);
+    if(rect){
+      rect.setAttribute('stroke',s.color);
+      rect.setAttribute('stroke-width','2.5');
+    }
+  });
+
+  renderTurnPager();
+}
+
+// バーの論理段（level）を計算
+//   even sector: row+1（整数）
+//   odd sector : row+1.5
+//   last sector (n奇数のとき n-1): row+1.25  （A段ともN段とも並列にならないように）
+function _barLevel(row, sector, n){
+  if(n%2===1 && sector===n-1) return (row+1) + 0.25;
+  return (row+1) + (sector%2===0 ? 0 : 0.5);
+}
+
+// スポーク i に隣接する全バーを level 降順でソートして返す
+// 各要素: {row, sector, side, level, idx}
+function _getSpokeBars(spokeIdx, n, totalRows){
+  const out=[];
+  for(let row=0;row<totalRows;row++){
+    const sR=spokeIdx, sL=(spokeIdx-1+n)%n;
+    out.push({row,sector:sR,side:'R',level:_barLevel(row,sR,n),idx:row*n+sR});
+    out.push({row,sector:sL,side:'L',level:_barLevel(row,sL,n),idx:row*n+sL});
+  }
+  out.sort((a,b)=>b.level-a.level);
+  return out;
+}
+
+// 全バーを level 降順で並べる
+function _getAllBarsByLevel(barsData, n, totalRows){
+  const all=[];
+  for(let row=0;row<totalRows;row++){
+    for(let sector=0;sector<n;sector++){
+      const idx=row*n+sector;
+      all.push({idx,row,sector,level:_barLevel(row,sector,n),alive:!!barsData[idx]});
+    }
+  }
+  all.sort((a,b)=>b.level-a.level);
+  return all;
+}
+
+function traceRouteStatic(barsData,start,n){
+  // 放射状アミダ: 隣り合った列の同じ数字は別の論理段（A=整数, B=+0.5, O=+0.25 等）
+  // 各論理段で最大1本だけ渡る = level 降順にバーを辿り、隣接していれば渡る
+  // スポークセグメントは各バー位置で細かく分割（各スポーク 2*totalRows+1 個）
+  const totalRows=Math.ceil(barsData.length/n);
+  const allBars=_getAllBarsByLevel(barsData,n,totalRows);
+  const spokeBars={};
+  for(let i=0;i<n;i++) spokeBars[i]=_getSpokeBars(i,n,totalRows);
+
+  let cur=start;
+  let curSegIdx=0;  // 0=外端側セグメント
+  const visitedBars=new Set();
+  const visitedSpokes=new Set();
+  visitedSpokes.add(`${cur}:0`);
+
+  for(const bar of allBars){
+    // 拡張ルール: 不可視線は通過不可、永久ロックも通過不可（barsData=false なので alive 判定で除外されるが念のため）
+    if(!bar.alive) continue;
+    if(isHidden(bar.idx)) continue;
+    if(isLocked(bar.idx)) continue;
+    let newCur;
+    if(bar.sector===cur) newCur=(cur+1)%n;
+    else if(bar.sector===((cur-1+n)%n)) newCur=(cur-1+n)%n;
+    else continue;
+
+    const curBarIdx=spokeBars[cur].findIndex(b=>b.idx===bar.idx);
+    const newBarIdx=spokeBars[newCur].findIndex(b=>b.idx===bar.idx);
+    if(curBarIdx<0||newBarIdx<0) continue;
+
+    // cur 上で curSegIdx から curBarIdx までのセグメントを訪問
+    for(let s=curSegIdx;s<=curBarIdx;s++) visitedSpokes.add(`${cur}:${s}`);
+    visitedBars.add(bar.idx);
+    cur=newCur;
+    curSegIdx=newBarIdx+1;
+    visitedSpokes.add(`${cur}:${curSegIdx}`);
+  }
+
+  // 最終スポークの残り（内端まで）＋中心点までの拡張セグメント
+  const finalMax=spokeBars[cur].length+1;  // +1 で中心点セグメントを含む
+  for(let s=curSegIdx;s<=finalMax;s++) visitedSpokes.add(`${cur}:${s}`);
+
+  return{bars:visitedBars,spokes:visitedSpokes};
+}
+
+function viewTurn(t){
+  // 過去のターンのbarを表示（読み取り専用）
+  const viewBars=barsHistory[t]||(t===0?Array(players.length*barsPerSector).fill(true):bars);
+  renderAmidaWithBars(viewBars,t);
+  renderTurnPager();
+}
+
+// ── AMIDA ──
+function drawAmidaSVG(barsData,n,R,barR1,barR2,interactive){
+  const angleStep=360/n;
+  let html='<defs><filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+  // スポーク（放射線）— rowセグメントごとに分割して id="spoke_i_r" で個別ハイライト可能にする
+  for(let i=0;i<n;i++){
+    const a=(i*angleStep-90)*Math.PI/180;
+    const px=(R+30)*Math.cos(a), py=(R+30)*Math.sin(a);
+    const ix=barR1*Math.cos(a), iy=barR1*Math.sin(a);
+    const ox=barR2*Math.cos(a), oy=barR2*Math.sin(a);
+    // 中心〜内端の薄い装飾線
+    html+=`<line x1="0" y1="0" x2="${px.toFixed(1)}" y2="${py.toFixed(1)}" stroke="#252522" stroke-width="1.5"/>`;
+    // スポークをセグメントに分割して描画
+    // セグメントの境界は横線の位置（rr）に合わせる
+    // spoke_i_seg の意味:
+    //   seg = 0       : 外端 〜 row=totalRows-1(最外横線)まで
+    //   seg = k (1-based) : row=totalRows-1-k+1 の横線 〜 row=totalRows-1-k の横線まで
+    //   seg = totalRows : row=0(最内横線) 〜 内端まで
+    // 簡易にするため: seg=j は「外から数えてj番目の横線より外」〜「j+1番目の横線より外」
+    // ここでは横線のrow番号(0=最内, totalRows-1=最外)を基準にセグメントを定義する
+    // セグメントID: spoke_i_OUTER (外端〜最外横線), spoke_i_R (row R と R+1 の間), spoke_i_INNER (最内横線〜内端)
+    // スポーク i に隣接するバー位置で細かく分割する
+    //   spokeBarsForI[k] のバー位置で seg k と seg k+1 を区切る
+    //   セグメント数 = spokeBarsForI.length + 1
+    const totalRows=Math.ceil(barsData.length/n);
+    const spokeBarsForI=_getSpokeBars(i,n,totalRows);
+    const radii=[];
+    radii.push(barR2);                                          // 外端
+    for(const b of spokeBarsForI){
+      const t=b.level/(totalRows+1);
+      radii.push(barR1+(barR2-barR1)*t);
+    }
+    radii.push(barR1);                                          // 内端（最後のバーの内側）
+    radii.push(0);                                              // 中心点までの追加セグメント（ハイライト時のみ表示）
+    for(let seg=0;seg<radii.length-1;seg++){
+      const r1=radii[seg], r2=radii[seg+1];
+      const sx1=r1*Math.cos(a), sy1=r1*Math.sin(a);
+      const sx2=r2*Math.cos(a), sy2=r2*Math.sin(a);
+      // 中心セグメントだけは初期状態を透明にしておき、ハイライト時のみ表示する
+      const isCenter=(seg===radii.length-2);
+      const initOpacity=isCenter?'0':'1';
+      html+=`<line id="spoke_${i}_${seg}" x1="${sx1.toFixed(1)}" y1="${sy1.toFixed(1)}" x2="${sx2.toFixed(1)}" y2="${sy2.toFixed(1)}" stroke="#4a4a46" stroke-width="3.5" stroke-linecap="round" opacity="${initOpacity}"/>`;
+    }
+  }
+  const totalRows=Math.ceil(barsData.length/n);
+  const zigOffset=(barR2-barR1)/(totalRows+1)*0.5;
+  barsData.forEach((alive,idx)=>{
+    const sector=idx%n, row=Math.floor(idx/n);
+    const t=(row+1)/(totalRows+1);
+    // 3値ジグザグ：奇数人数でも最後のセクターがAと直列にならないよう中間値を使う
+    const isLastOddN=(n%2===1 && sector===n-1);
+    const zigShift=isLastOddN?zigOffset*0.5:(sector%2===0?0:zigOffset);
+    const rr=barR1+(barR2-barR1)*t+zigShift;
+    const a1=(sector*angleStep-90)*Math.PI/180;
+    const a2=((sector+1)%n*angleStep-90)*Math.PI/180;
+    const x1=rr*Math.cos(a1),y1=rr*Math.sin(a1),x2=rr*Math.cos(a2),y2=rr*Math.sin(a2);
+    const midX=(x1+x2)/2, midY=(y1+y2)/2;
+    const hov=interactive?`onmouseenter="barHover(${idx},true,${midX.toFixed(1)},${midY.toFixed(1)})" onmouseleave="barHover(${idx},false,0,0)"`:'';
+    const clk=interactive?`onclick="toggleBar(${idx})" style="cursor:pointer"`:'';
+    // 拡張ルール: 不可視線は描画しない（点線で薄く存在を示唆も不要・運営側もディーラー卓で見える方が良いので薄表示）
+    const hidden=isHidden(idx);
+    const locked=isLocked(idx);
+    if(hidden){
+      // ディーラー卓では薄い破線で示唆。プレイヤー卓では非表示の運用想定
+      html+=`<line id="bar_${idx}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#3a3a36" stroke-width="1" stroke-dasharray="2 4" stroke-linecap="round" opacity="0.35" ${clk} ${hov}/>`;
+      html+=`<text x="${midX.toFixed(1)}" y="${midY.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="7" fill="#5a5a56" opacity="0.45" style="pointer-events:none" id="barlbl_${idx}">${_labelForBar(idx,n)}</text>`;
+    } else if(locked){
+      // 永久ロック: 赤い斜線+鎖アイコン
+      html+=`<line id="bar_${idx}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#e24b4a" stroke-width="2.5" stroke-linecap="round" opacity="0.85" ${clk} ${hov}/>`;
+      html+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0a0a08" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round" opacity="0.85" pointer-events="none"/>`;
+      html+=`<text x="${midX.toFixed(1)}" y="${(midY-9).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="11" style="pointer-events:none">🔒</text>`;
+      html+=`<text x="${midX.toFixed(1)}" y="${(midY+5).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#ffaaaa" style="pointer-events:none" id="barlbl_${idx}">${_labelForBar(idx,n)}</text>`;
+    } else if(alive){
+      html+=`<line id="bar_${idx}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#e24b4a" stroke-width="3" stroke-linecap="round" ${clk} ${hov}/>`;
+      html+=`<text x="${midX.toFixed(1)}" y="${midY.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="9" fill="#e24b4a" style="pointer-events:none" id="barlbl_${idx}">${_labelForBar(idx,n)}</text>`;
+    } else {
+      html+=`<line id="bar_${idx}" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#5a5a56" stroke-width="1.5" stroke-dasharray="5 4" stroke-linecap="round" opacity="0.6" ${clk} ${hov}/>`;
+      html+=`<text x="${midX.toFixed(1)}" y="${midY.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="8" fill="#5a5a56" opacity="0.6" style="pointer-events:none" id="barlbl_${idx}">${_labelForBar(idx,n)}</text>`;
+    }
+  });
+  // プレイヤーラベル（アルファベット＋名前＋通過横棒数を横並び・フォント1.5倍）
+  // PHANTOM: ファントム空席はグレー色で表示
+  // 通過数は barsData から traceRouteStatic で計算
+  for(let i=0;i<n;i++){
+    const a=(i*angleStep-90)*Math.PI/180;
+    // R を大きくする方向にラベル位置を外側へ
+    const lx=(R+40)*Math.cos(a), ly=(R+40)*Math.sin(a);
+    const p=players[i];
+    const phantom=isPhantom(p);
+    const alpha=p?p.alpha:ALPHA[i];
+    const name=p&&p.name?p.name:'';
+    const nameDisp=name.length>6?name.slice(0,6)+'…':name;
+    // 通過横棒数を計算（ファントムは表示しない）
+    let routeCount=null;
+    if(!phantom){
+      try{ routeCount=traceRouteStatic(barsData,i,n).bars.size; }
+      catch(e){ routeCount=0; }
+    }
+    // フォントサイズを 1.5 倍に: 12 → 18
+    const alphaFs=18, nameFs=18, countFs=16;
+    // 各要素の幅計算
+    const alphaW=alpha.length*alphaFs*0.72;
+    const nameW=nameDisp.length*nameFs*0.62;
+    const countTxt=phantom?'':String(routeCount);
+    const countW=phantom?0:(countTxt.length*countFs*0.68 + 6);  // バッジ用パディング込
+    const gap=8;
+    const innerW=alphaW + (nameDisp?gap+nameW:0) + (countW?gap+countW:0);
+    const padX=14;
+    const w=Math.max(60, innerW + padX*2);
+    const lh=Math.round(alphaFs*1.6);  // 約 29px
+    const hov=interactive?`onmouseenter="playerHover(${i},true,${lx.toFixed(1)},${ly.toFixed(1)})" onmouseleave="playerHover(${i},false,0,0)" onclick="playerClick(${i},${lx.toFixed(1)},${ly.toFixed(1)})"`:''
+    const fillBg = phantom ? '#2a2a28' : '#2a2240';
+    const strokeCol = phantom ? '#5a5a56' : '#9f8fef';
+    const alphaCol = phantom ? '#7a7872' : '#9f8fef';
+    const nameCol = phantom ? '#7a7872' : '#d0cde6';
+    // 各要素の x 起点（中央揃え）
+    const startX = lx - innerW/2;
+    const alphaX = startX;
+    const nameX  = alphaX + alphaW + gap;
+    const countX = nameX  + nameW  + gap;
+    html+=`<g id="plg_${i}" style="cursor:pointer" ${hov}>
+      <rect id="plrect_${i}" x="${(lx-w/2).toFixed(1)}" y="${(ly-lh/2).toFixed(1)}" width="${w}" height="${lh}" rx="5" fill="${fillBg}" stroke="${strokeCol}" stroke-width="1"/>
+      <text x="${alphaX.toFixed(1)}" y="${ly.toFixed(1)}" dominant-baseline="central" font-size="${alphaFs}" font-weight="bold" fill="${alphaCol}">${alpha}</text>
+      ${nameDisp?`<text x="${nameX.toFixed(1)}" y="${ly.toFixed(1)}" dominant-baseline="central" font-size="${nameFs}" fill="${nameCol}">${nameDisp}</text>`:''}
+      ${phantom?'':`
+        <rect x="${(countX-3).toFixed(1)}" y="${(ly-countFs*0.8).toFixed(1)}" width="${(countW).toFixed(1)}" height="${(countFs*1.6).toFixed(1)}" rx="3" fill="rgba(239,159,39,.18)" stroke="#ef9f27" stroke-width="0.8"/>
+        <text x="${(countX-3+countW/2).toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="${countFs}" font-weight="700" fill="#ef9f27">${countTxt}</text>
+      `}
+    </g>`;
+  }
+  html+=`<circle cx="0" cy="0" r="6" fill="#e24b4a"/>`;
+  if(interactive){
+    html+=`<g id="barPopup" style="pointer-events:none;display:none">
+      <rect id="popupBg" x="-30" y="-16" width="60" height="32" rx="6" fill="#1a1a18" stroke="#e24b4a" stroke-width="1.5"/>
+      <text id="popupText" x="0" y="0" text-anchor="middle" dominant-baseline="central" font-size="14" font-weight="bold" fill="#e24b4a"></text>
+    </g>`;
+    // プレイヤー名ポップアップ（playerHover用）
+    html+=`<g id="playerPopup" style="pointer-events:none;display:none">
+      <rect id="plPopupBg" rx="5" fill="#1e1830" stroke="#9f8fef" stroke-width="1.5"/>
+      <text id="plPopupText" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="bold" fill="#9f8fef"></text>
+    </g>`;
+  }
+  return html;
+}
+
+function renderAmida(){
+  if(!players.length) return;
+  const svg=document.getElementById('amidaSvg');
+  // drawAmidaSVG 内のプレイヤーラベルに通過横棒数が組み込まれている
+  svg.innerHTML=drawAmidaSVG(bars,players.length,270,80,250,true);
+  renderBarGrid();
+}
+
+function renderAmidaWithBars(barsData,turnNum){
+  if(!players.length) return;
+  const svg=document.getElementById('amidaSvg');
+  // ターン番号ラベル付きで描画
+  let html=drawAmidaSVG(barsData,players.length,270,80,250,turnNum===period||turnNum===0);
+  const label=turnNum===0?'初期状態':`T${turnNum}の状態`;
+  html+=`<text x="0" y="-330" text-anchor="middle" font-size="13" fill="#5a5a56" letter-spacing="2">${label}</text>`;
+  svg.innerHTML=html;
+}
+
+function barHover(idx,enter,mx,my){
+  const svg=document.getElementById('amidaSvg');if(!svg) return;
+  const line=svg.querySelector('#bar_'+idx);
+  const lbl=svg.querySelector('#barlbl_'+idx);
+  const popup=svg.querySelector('#barPopup');
+  if(!line) return;
+  if(enter){
+    line.setAttribute('stroke',bars[idx]?'#ff7a79':'#9a9a94');
+    line.setAttribute('stroke-width',bars[idx]?'5':'3');
+    if(!bars[idx]) line.setAttribute('opacity','1');
+    if(lbl){lbl.setAttribute('font-size','11');lbl.setAttribute('fill',bars[idx]?'#ff7a79':'#9a9a94');}
+    if(popup){
+      popup.style.display='block';
+      const bg=popup.querySelector('#popupBg');
+      const txt=popup.querySelector('#popupText');
+      const ox=mx+44, oy=my-34;
+      if(bg){bg.setAttribute('x',String(ox-30));bg.setAttribute('y',String(oy-16));}
+      if(txt){txt.setAttribute('x',String(ox));txt.setAttribute('y',String(oy));txt.textContent=barLabel(idx,players.length)+(bars[idx]?'':'✗');txt.setAttribute('fill',bars[idx]?'#5dcaa5':'#888780');}
+    }
+  } else {
+    line.setAttribute('stroke',bars[idx]?'#e24b4a':'#5a5a56');
+    line.setAttribute('stroke-width',bars[idx]?'3':'1.5');
+    if(!bars[idx]) line.setAttribute('opacity','0.6');
+    if(lbl){lbl.setAttribute('font-size',bars[idx]?'9':'8');lbl.setAttribute('fill',bars[idx]?'#e24b4a':'#5a5a56');}
+    if(popup) popup.style.display='none';
+  }
+}
+
+// プレイヤーラベルがクリックでルートをロック表示するための状態
+let lockedPlayerIdx=-1;
+
+function playerHover(playerIdx,enter,labelX,labelY){
+  const svg=document.getElementById('amidaSvg');if(!svg) return;
+  const n=players.length, angleStep=360/n;
+  const totalRows=Math.ceil(bars.length/n);
+  // ロック中は別のプレイヤーのホバーを無視
+  if(lockedPlayerIdx>=0 && lockedPlayerIdx!==playerIdx && enter) return;
+
+  function traceRoute(start){
+    // 隣り合った列の同じ数字は別の論理段。level 降順で隣接バーを順に渡る
+    const r=traceRouteStatic(bars, start, n);
+    return r;
+  }
+
+  const CYAN='#00d4ff';  // ルートハイライト色（水色）
+  const route=enter?traceRoute(playerIdx):{bars:new Set(), spokes:new Set()};
+
+  // ── プレイヤーラベルのハイライト ──
+  const rect=svg.querySelector('#plrect_'+playerIdx);
+  if(rect){
+    rect.setAttribute('fill',enter?'#003a4a':'#2a2240');
+    rect.setAttribute('stroke',enter?CYAN:'#9f8fef');
+    rect.setAttribute('stroke-width',enter?'2':'1');
+  }
+
+  // ── スポークセグメントのハイライト ──
+  // 各スポークは「外端→内端 (2*totalRows+1 個)」＋「内端→中心 (1個)」= 2*totalRows+2 個
+  // 中心セグメントは index = 2*totalRows+1。デフォルトは opacity=0（非表示）
+  const _maxSeg=2*totalRows+1;
+  const _centerSeg=2*totalRows+1;
+  for(let i=0;i<n;i++){
+    for(let seg=0;seg<=_maxSeg;seg++){
+      const el=svg.querySelector(`#spoke_${i}_${seg}`);
+      if(!el) continue;
+      const isCenter=(seg===_centerSeg);
+      const onRoute=enter&&route.spokes.has(`${i}:${seg}`);
+      if(enter){
+        if(onRoute){
+          el.setAttribute('stroke',CYAN);
+          el.setAttribute('stroke-width','4');
+          el.setAttribute('opacity','1');
+        } else {
+          el.setAttribute('stroke','#4a4a46');
+          el.setAttribute('stroke-width','3.5');
+          el.setAttribute('opacity', isCenter?'0':'0.15');
+        }
+      } else {
+        el.setAttribute('stroke','#4a4a46');
+        el.setAttribute('stroke-width','3.5');
+        el.setAttribute('opacity', isCenter?'0':'1');
+      }
+    }
+  }
+
+  // ── 横線のハイライト ──
+  bars.forEach((_,idx)=>{
+    const line=svg.querySelector('#bar_'+idx);
+    const lbl=svg.querySelector('#barlbl_'+idx);
+    if(!line) return;
+    const onR=route.bars.has(idx);
+    if(enter){
+      if(onR){
+        line.setAttribute('stroke',CYAN);
+        line.setAttribute('stroke-width','5');
+        line.setAttribute('opacity','1');
+        if(lbl){lbl.setAttribute('fill',CYAN);lbl.setAttribute('font-size','11');}
+      } else {
+        line.setAttribute('opacity',bars[idx]?'0.12':'0.06');
+      }
+    } else {
+      line.setAttribute('stroke',bars[idx]?'#e24b4a':'#5a5a56');
+      line.setAttribute('stroke-width',bars[idx]?'3':'1.5');
+      line.setAttribute('opacity',bars[idx]?'1':'0.6');
+      if(lbl){lbl.setAttribute('fill',bars[idx]?'#e24b4a':'#5a5a56');lbl.setAttribute('font-size',bars[idx]?'9':'8');}
+    }
+  });
+}
+
+function playerClick(playerIdx,labelX,labelY){
+  // クリックでルートをロック/解除
+  if(lockedPlayerIdx===playerIdx){
+    // 解除
+    lockedPlayerIdx=-1;
+    playerHover(playerIdx,false,0,0);
+  } else {
+    // 前のロックを解除
+    if(lockedPlayerIdx>=0) playerHover(lockedPlayerIdx,false,0,0);
+    lockedPlayerIdx=playerIdx;
+    playerHover(playerIdx,true,labelX,labelY);
+  }
+}
+
+// ── BAR LABEL ──
+// idx = sector + row * n
+// sector=idx%n → アルファベット（A,B,…）
+// row=Math.floor(idx/n) → 内側から何番目（1,2,…）
+// 例: sector=0,row=0 → A1 / sector=1,row=2 → B3
+function barLabel(idx, n){
+  const sector=idx%n;
+  const row=Math.floor(idx/n);
+  // 拡張ルール: 不可視線ON時は row 0 を "0" 表示、それ以外は row+1
+  const num = rulesConfig.hiddenLines ? row : (row+1);
+  return ALPHA[sector]+num;
+}
+
+function renderBarGrid(){
+  const n=players.length||1;
+  const totalRows=Math.ceil(bars.length/n);
+  // ヘッダー：アルファベット列
+  const alphaHeaders=Array.from({length:n},(_,s)=>
+    `<th style="padding:3px 6px;font-size:10px;color:var(--text2);font-weight:600;text-align:center">${ALPHA[s]}</th>`
+  ).join('');
+  // 各行（数字=内側から何番目か）
+  const rows=Array.from({length:totalRows},(_,row)=>{
+    const cells=Array.from({length:n},(_,s)=>{
+      const idx=s+row*n;
+      if(idx>=bars.length) return `<td style="padding:3px 4px"></td>`;
+      const b=bars[idx];
+      return `<td style="padding:2px 3px;text-align:center">
+        <div onclick="toggleBar(${idx})" style="cursor:pointer;padding:2px 5px;border-radius:3px;border:1px solid ${b?'#e24b4a':'var(--border)'};background:${b?'var(--red-dim)':'var(--bg2)'};font-size:10px;color:${b?'#e24b4a':'var(--text2)'};${b?'':'text-decoration:line-through;opacity:.5'};transition:.12s;white-space:nowrap">${ALPHA[s]}${row+1}</div>
+      </td>`;
+    }).join('');
+    return `<tr><td style="padding:2px 6px;font-size:10px;color:var(--text2);text-align:right;min-width:18px">${row+1}</td>${cells}</tr>`;
+  }).join('');
+  document.getElementById('barGrid').innerHTML=`
+    <table style="border-collapse:collapse;width:100%">
+      <thead><tr><th style="padding:3px 6px;font-size:10px;color:var(--text2);">#</th>${alphaHeaders}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function toggleBar(idx){
+  bars[idx]=!bars[idx];
+  barsHistory[period]=[...bars];
+  addLog('info',`${barLabel(idx,players.length)} ${bars[idx]?'復活':'消去'}（手動）`);
+  renderAmida();renderResult();
+}
+
+// ── MEDAL ──
+function renderMedalTab(){
+  if(!players.length) return;
+  renderMedalStatus();
+}
+function renderMedalStatus(){
+  // PHANTOM: メダル管理表示はファントムを除外
+  document.getElementById('medalStatus').innerHTML=players.map((p,i)=>{
+    if(isPhantom(p)) return '';
+    return `<div class="medal-chip">
+      <div class="mc-alpha">${p.alpha||String(i+1)}</div>
+      <div class="mc-count">${medals[i]}</div>
+      <div class="mc-name">${p.name}</div>
+    </div>`;
+  }).join('');
+}
+async function recordMedal(){
+  const fi=document.getElementById('mFrom').value;
+  const ti=parseInt(document.getElementById('mTo').value);
+  const amt=parseInt(document.getElementById('mAmt').value)||1;
+  const note=document.getElementById('mNote').value;
+  if(fi!=='') medals[parseInt(fi)]-=amt;
+  medals[ti]+=amt;
+  const fromName=fi===''?'外部':players[parseInt(fi)].name;
+  const logMsg=`${fromName} → ${players[ti].name} ${amt}枚 ${note?'('+note+')':''}`;
+  addLog('ok','メダル: '+logMsg);
+  medalMoveLog.unshift({t:ts(),msg:logMsg});
+  document.getElementById('medalHistory').innerHTML=medalMoveLog.map(e=>`<div class="log-row"><span class="log-time">${e.t}</span><span class="log-info">${e.msg}</span></div>`).join('');
+  if(sbOK&&curSession&&!curSession.id.startsWith('local_')){
+    setSbStatus('busy');
+    try{
+      await sbFetch('amida_medal_logs',{method:'POST',body:JSON.stringify({session_id:curSession.id,period,from_idx:fi===''?null:parseInt(fi),to_idx:ti,amount:amt,note})});
+      setSbStatus('ok');
+    }catch(e){setSbStatus('err');addLog('err',e.message);}
+  }
+  renderMedalStatus();renderResult();
+}
+
+// ── RESULT ──
+function renderChipInputArea(){
+  if(!players.length) return;
+  // PHANTOM: チップ入力もファントムを除外
+  document.getElementById('chipInputArea').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px">
+      ${players.map((p,i)=>{
+        if(isPhantom(p)) return '';
+        return `<div style="display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--bg2);border-radius:5px;border:1px solid var(--border)">
+          <div style="width:20px;height:20px;border-radius:3px;background:var(--gold-dim);border:1px solid var(--gold);color:var(--gold);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.alpha||String(i+1)}</div>
+          <span style="font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">P${i+1} ${p.name}</span>
+          <input type="number" id="chip_${i}" value="${chips[i]||0}" min="0" style="width:52px;font-size:11px;padding:2px 4px" oninput="chips[${i}]=parseInt(this.value)||0">
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function confirmChips(){
+  players.forEach((_,i)=>{
+    const el=document.getElementById('chip_'+i);
+    if(el) chips[i]=parseInt(el.value)||0;
+  });
+  chipsConfirmed=true;
+  document.getElementById('chipConfirmed').style.display='inline';
+  addLog('ok','チップ確定: '+players.map((p,i)=>`${p.alpha||'P'+(i+1)}=${chips[i]}`).join(', '));
+  await saveSession();  // 発表ツールに反映されるよう meta に保存
+  renderResult();
+}
+
+function renderResult(){
+  renderChipInputArea();
+  if(!players.length){document.getElementById('resultContent').innerHTML='';return;}
+  const LOAN=100000000; // 借入額 1億 L$
+  // 各プレイヤーのルート長計算（最終ターンのバー状態を使用）
+  const finalBars=barsHistory[totalTurns]||bars;
+  const n=players.length;
+  const real=players.map((p,i)=>{
+    if(isPhantom(p)) return null;
+    let routeLen=Infinity;
+    try{ routeLen=traceRouteStatic(finalBars,i,n).bars.size; }catch(e){}
+    return {p,i,routeLen};
+  }).filter(r=>r!==null);
+  // 順位付け: ルート長昇順、タイブレーク: 始点 i が小さい（Aに近い）順
+  real.sort((a,b)=>{
+    if(a.routeLen!==b.routeLen) return a.routeLen-b.routeLen;
+    return a.i-b.i;
+  });
+  real.forEach((r,idx)=>{ r.rank=idx+1; });
+  // 賞金モードに応じて配分
+  const prizeForRank=(rk)=>{
+    if(rulesConfig.prizeMode==='A') return rk===1 ? rulesConfig.prizeA : 0;
+    if(rk===1) return rulesConfig.prizeB1;
+    if(rk===2) return rulesConfig.prizeB2;
+    if(rk===3) return rulesConfig.prizeB3;
+    return 0;
+  };
+  real.forEach(r=>{
+    r.chips=chipsConfirmed?chips[r.i]:medals[r.i];
+    r.earned=prizeForRank(r.rank);
+    r.net=r.earned-LOAN;
+  });
+  const alive=bars.filter(b=>b).length;
+  const hiddenCount=barsHidden.length;
+  const lockedCount=barsLocked.length;
+  // モード表示
+  const modeBadge = rulesConfig.prizeMode==='A'
+    ? `<span style="color:var(--gold);font-weight:700">Aモード（1位のみ換金）</span>`
+    : `<span style="color:var(--gold);font-weight:700">Bモード（1〜3位換金）</span>`;
+  let html=`
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">残横線</div><div class="metric-value" style="color:var(--red)">${alive}</div><div class="metric-sub">本</div></div>
+      <div class="metric"><div class="metric-label">永久ロック</div><div class="metric-value" style="color:#ff8e8e">${lockedCount}</div><div class="metric-sub">🔒</div></div>
+      <div class="metric"><div class="metric-label">不可視線</div><div class="metric-value" style="color:var(--text2)">${hiddenCount}</div><div class="metric-sub">本</div></div>
+      <div class="metric"><div class="metric-label">確定</div><div class="metric-value" style="font-size:16px">${chipsConfirmed?'済':'未'}</div><div class="metric-sub"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">最終集計 ${modeBadge} ${chipsConfirmed?'（チップ確定済み）':'（チップ未確定）'}</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px">
+        ${rulesConfig.prizeMode==='A'
+          ? `1位賞金: ${rulesConfig.prizeA.toLocaleString()}円`
+          : `1位: ${rulesConfig.prizeB1.toLocaleString()}円 / 2位: ${rulesConfig.prizeB2.toLocaleString()}円 / 3位: ${rulesConfig.prizeB3.toLocaleString()}円<br>※同率時はAに近い始点を優先`
+        }
+      </div>
+      <table class="tbl">
+        <thead><tr><th>順位</th><th>位置</th><th>番号</th><th>名前</th><th>ルート長</th><th>${chipsConfirmed?'チップ':'メダル'}</th><th>賞金</th><th>損益</th><th>投票権</th></tr></thead>
+        <tbody>${real.map(r=>`
+          <tr class="${r.rank===1?'result-row-winner':r.net<0?'result-row-loser':''}">
+            <td>${r.rank}位${r.rank===1?'<span class="badge badge-gold" style="margin-left:4px">勝者</span>':r.rank<=3&&rulesConfig.prizeMode==='B'?'<span class="badge badge-green" style="margin-left:4px">入賞</span>':''}</td>
+            <td>${r.p.alpha?`<span class="badge badge-purple">${r.p.alpha}</span>`:'<span style="color:var(--text2);font-size:11px">未確定</span>'}</td>
+            <td style="color:var(--text2)">P${r.i+1}</td>
+            <td>${r.p.name}</td>
+            <td style="font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums">${r.routeLen===Infinity?'—':r.routeLen}</td>
+            <td>${r.chips}枚</td>
+            <td>${r.earned>0?r.earned.toLocaleString()+'円':'<span style="color:var(--text2)">—</span>'}</td>
+            <td style="font-weight:700;color:${r.net>=0?'var(--green)':'var(--red)'}">${r.net>=0?'+':''}${r.net.toLocaleString()}円</td>
+            <td>${lostRight[r.i]?'<span class="badge badge-red">なし</span>':'<span class="badge badge-green">あり</span>'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  document.getElementById('resultContent').innerHTML=html;
+}
+
+// ── TIMER ──
+function setTimerFromSetup(){const s=turnMinutes*60;timerMax=s;timerSec=s;if(!timerRunning)updateTimerDisplay();}
+function setTimer(s){timerMax=s;timerSec=s;if(!timerRunning)updateTimerDisplay();}
+function startTimer(){
+  if(timerRunning) return;
+  timerRunning=true;
+  document.getElementById('timerStartBtn').disabled=true;
+  timerInt=setInterval(()=>{timerSec--;updateTimerDisplay();if(timerSec<=0){clearInterval(timerInt);timerRunning=false;document.getElementById('timerStartBtn').disabled=false;}},1000);
+}
+function pauseTimer(){clearInterval(timerInt);timerRunning=false;document.getElementById('timerStartBtn').disabled=false;}
+function resetTimer(){pauseTimer();timerSec=timerMax;updateTimerDisplay();}
+function updateTimerDisplay(){
+  const m=Math.floor(timerSec/60),s=timerSec%60;
+  const el=document.getElementById('timerDisp');
+  el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.className=timerSec<=30?'danger':timerSec<=60?'warn':'';
+  const pct=timerSec/timerMax*100;
+  const fill=document.getElementById('timerFill');
+  fill.style.width=pct+'%';
+  fill.style.background=timerSec<=30?'var(--red)':timerSec<=60?'var(--gold)':'var(--green)';
+}
+
+// ── LOGS ──
+function ts(){return new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+function addLog(type,msg){opLog.unshift({t:ts(),type,msg});renderOpLog();}
+function renderOpLog(){
+  document.getElementById('opLogBox').innerHTML=opLog.map(e=>`
+    <div class="log-row"><span class="log-time">${e.t}</span><span class="log-${e.type}">${e.msg}</span></div>`).join('');
+}
+function exportCSV(){
+  const csv='時刻,種別,メッセージ\n'+opLog.map(e=>`"${e.t}","${e.type}","${e.msg}"`).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='amida_log_'+Date.now()+'.csv';a.click();addLog('ok','CSVエクスポート');
+}
+async function loadSbLogs(){
+  if(!sbOK||!curSession){document.getElementById('sbPeriodLogs').textContent='Supabase未接続またはセッション未選択';return;}
+  try{
+    const logs=await sbFetch('amida_period_logs?session_id=eq.'+curSession.id+'&select=period,results,created_at&order=period.asc');
+    document.getElementById('sbPeriodLogs').innerHTML=logs.length
+      ?`<table class="tbl"><thead><tr><th>T</th><th>時刻</th><th>〈流れ〉</th><th>変更</th><th>ログ</th></tr></thead><tbody>${logs.map(l=>`
+          <tr><td>T${l.period}</td><td>${new Date(l.created_at).toLocaleTimeString('ja-JP')}</td>
+          <td>${l.results.flow?'<span class="badge badge-red">発生</span>':'—'}</td>
+          <td>${l.results.barChanges.length}件</td>
+          <td style="font-size:10px;color:var(--text2)">${(l.results.log||[]).slice(0,3).join(' / ')}</td></tr>`).join('')}
+        </tbody></table>`
+      :'保存済みログなし';
+  }catch(e){document.getElementById('sbPeriodLogs').textContent='取得失敗: '+e.message;}
+}
+
+// ── UI HELPERS ──
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const nav=document.getElementById('nav-'+id);
+  if(nav) nav.classList.add('active');
+  if(id==='panelLogs') loadSbLogs();
+  if(id==='panelSetup') renderSetup();
+  if(id==='panelAmida'){renderAmida();renderTurnPager();}
+  if(id==='panelResult'){renderChipInputArea();renderResult();}
+  if(id==='panelPlace') renderPlacePanel();
+  if(id==='panelVote') renderVote();
+}
+function openModal(id){document.getElementById(id).style.display='flex';}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function confirm2(msg,cb){
+  document.getElementById('confirmMsg').textContent=msg;
+  document.getElementById('confirmBg').style.display='flex';
+  document.getElementById('confirmYes').onclick=()=>{document.getElementById('confirmBg').style.display='none';cb();};
+  document.getElementById('confirmNo').onclick=()=>{document.getElementById('confirmBg').style.display='none';};
+}
+
+// ── 場所決め投票 ──
+// 設計: placeFixed = {alpha: origIdx}  origIdx = セットアップ時の固定番号（0-indexed、不変）
+// pendingPlayers = origIdxのリスト（players配列インデックスではない）
+let placeRound=1;
+let placeVotes={};      // {origIdx: alphaChar|null}
+let placeFixed={};      // {alpha: origIdx}
+let pendingPlayers=[];  // origIdxのリスト
+let placeTimerSec=600, placeTimerMax=600, placeTimerRunning=false, placeTimerInt=null;
+let placeLogs=[];
+let placeHistory=[];
+
+// origIdx → playerオブジェクト（players配列が並び替えられても正しく検索）
+function getPlayerByOrigIdx(oi){
+  const n=Number(oi);
+  return players.find(p=>p.origIdx!==undefined?p.origIdx===n:players.indexOf(p)===n)||null;
+}
+
+// 完全新規初期化
+// PHANTOM: 場所決め投票はファントムを含めず実プレイヤーのみで実施
+function initPlaceVote(){
+  if(!players.length) return;
+  placeRound=1; placeVotes={}; placeFixed={}; placeLogs=[]; placeHistory=[];
+  // PHANTOM: ファントムは pendingPlayers から除外
+  pendingPlayers=players
+    .filter(p=>!isPhantom(p))
+    .map((p,i)=>p.origIdx!==undefined && p.origIdx>=0 ? p.origIdx : i);
+  pendingPlayers.forEach(oi=>{ placeVotes[oi]=[]; });
+  placeTimerSec=600; placeTimerMax=600;
+  renderPlacePanel();
+}
+
+async function savePlaceMeta(){
+  if(!sbOK||!curSession||curSession.id.startsWith('local_')) return;
+  try{
+    const existingMeta=curSession.meta||{};
+    const meta=Object.assign({},existingMeta,{
+      barsPerSector,totalTurns,turnMinutes,
+      placeHistory,placeFixed,pendingPlayers,
+      placeVotes  // 入力途中の投票内容も保存
+    });
+    curSession.meta=meta;
+    await sbFetch('amida_sessions?id=eq.'+curSession.id,{method:'PATCH',body:JSON.stringify({meta})});
+  }catch(e){ addLog('err','場所決め保存失敗: '+e.message); }
+}
+
+// metaから場所決め状態を復元
+function restorePlaceVoteFromMeta(meta){
+  placeLogs=[];
+  placeHistory=Array.isArray(meta.placeHistory)?meta.placeHistory:[];
+  // PHANTOM: 場所決め復元時もファントムを除外
+  const allOis=players
+    .filter(p=>!isPhantom(p))
+    .map((p,i)=>p.origIdx!==undefined && p.origIdx>=0 ? p.origIdx : i);
+
+  if(placeHistory.length===0){
+    placeRound=1; placeFixed={}; placeVotes={};
+    pendingPlayers=[...allOis];
+    pendingPlayers.forEach(oi=>{ placeVotes[oi]=null; });
+    placeTimerSec=600; placeTimerMax=600;
+    renderPlacePanel();
+    return;
+  }
+
+  // placeFixed復元（値はorigIdx）
+  if(meta.placeFixed&&typeof meta.placeFixed==='object'){
+    placeFixed={};
+    Object.entries(meta.placeFixed).forEach(([a,v])=>{ placeFixed[a]=parseInt(v); });
+  } else {
+    const last=placeHistory[placeHistory.length-1];
+    placeFixed={};
+    Object.entries(last.fixed||{}).forEach(([a,v])=>{ placeFixed[a]=parseInt(v); });
+  }
+
+  const fixedOis=Object.values(placeFixed).map(Number);
+  if(Array.isArray(meta.pendingPlayers)&&meta.pendingPlayers.length>0){
+    pendingPlayers=meta.pendingPlayers.map(Number);
+  } else {
+    pendingPlayers=allOis.filter(oi=>!fixedOis.includes(oi));
+  }
+
+  const hasRandom=placeHistory.some(h=>h.round==='random');
+  if(hasRandom||pendingPlayers.length===0){
+    placeRound=placeHistory.filter(h=>h.round!=='random').length;
+    pendingPlayers=[];
+  } else {
+    placeRound=placeHistory.filter(h=>h.round!=='random').length+1;
+  }
+  if(placeRound<1) placeRound=1;
+
+  // placeVotesを初期化（配列）してからmeta保存値で上書き（旧形式: string→配列化）
+  pendingPlayers.forEach(oi=>{ placeVotes[oi]=[]; });
+  if(meta.placeVotes&&typeof meta.placeVotes==='object'){
+    Object.entries(meta.placeVotes).forEach(([k,v])=>{
+      const oi=parseInt(k);
+      if(pendingPlayers.includes(oi)) placeVotes[oi]=_normalizeVotes(v);
+    });
+  }
+  const dm=placeRound===1?10:5;
+  placeTimerSec=dm*60; placeTimerMax=placeTimerSec;
+  addLog('info',`場所決め復元: R${placeRound} 確定${Object.keys(placeFixed).length}/${players.length}名`);
+  renderPlacePanel();
+}
+
+function renderPlacePanel(){
+  if(!players.length){
+    document.getElementById('placeVoteArea').innerHTML='<div style="color:var(--text2);font-size:12px">セットアップを先に完了してください</div>';
+    return;
+  }
+  document.getElementById('placeRound').textContent=placeRound;
+  const dm=placeRound===1?10:5;
+  if(placeTimerSec===600||placeTimerSec===300){
+    placeTimerMax=dm*60; placeTimerSec=placeTimerMax;
+  }
+  updatePlaceTimer();
+
+  const isLocked=placeHistory.some(h=>h.round===placeRound||h.round==='random');
+  const fixedOis=Object.values(placeFixed).map(Number);
+  const freeAlphas=players.map((_,i)=>ALPHA[i]).filter(a=>!Object.keys(placeFixed).includes(a));
+
+  const lockedBanner=isLocked?`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;margin-bottom:10px">
+      <span style="font-size:12px;color:var(--green)">✓ ラウンド${placeRound} 集計済み</span>
+      <button class="btn btn-sm" onclick="unlockPlaceRound()">解除</button>
+    </div>`:`
+    <div style="padding:6px 10px;background:var(--bg2);border:1px solid var(--border);border-radius:6px;margin-bottom:10px;font-size:11px;color:var(--text2);line-height:1.5">
+      💡 同一プレイヤーが <b>複数のアルファベットに投票可能</b>。<br>
+      集計時、他プレイヤーとバッティングした票は無効化され、残った非バッティング票が <b>1 つだけ</b>のときに限り確定します。
+    </div>`;
+
+  // このラウンドの投票内容をplaceHistoryから復元（ロック中の表示用）
+  const currentRoundHistory=placeHistory.find(h=>h.round===placeRound);
+  const lockedVotesMap=currentRoundHistory?currentRoundHistory.votes:{};
+  const lockedInvalidatedSet=new Set(currentRoundHistory?(currentRoundHistory.invalidated||[]).map(Number):[]);
+
+  // origIdx昇順（P1,P2,...順）で全プレイヤー表示
+  const allOis=[...new Set(players.map((p,i)=>p.origIdx!==undefined?p.origIdx:i))].sort((a,b)=>a-b);
+
+  document.getElementById('placeVoteArea').innerHTML=lockedBanner+`
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px">
+      ${allOis.map(oi=>{
+        const p=getPlayerByOrigIdx(oi);
+        if(!p) return '';
+        const isFixed=fixedOis.includes(oi);
+        const fixedAlpha=isFixed?Object.entries(placeFixed).find(([,v])=>Number(v)===oi)?.[0]:'';
+        const isPending=pendingPlayers.includes(oi);
+        // ロック済み：placeHistoryの投票配列を表示
+        // 未ロック：placeVotes の配列を表示（C で復元された無効化票も含む）
+        const savedVotes=isLocked
+          ? _normalizeVotes(lockedVotesMap[String(oi)] ?? lockedVotesMap[oi])
+          : _normalizeVotes(placeVotes[oi]);
+        const isInvalid=lockedInvalidatedSet.has(oi);
+        // チェックボックスは確定済み以外（pending or 新規）に表示
+        const checkboxes=freeAlphas.map(a=>{
+          const checked=savedVotes.includes(a);
+          return `<label style="display:inline-flex;align-items:center;gap:3px;padding:2px 5px;background:${checked?'rgba(184,138,62,.18)':'var(--bg3)'};border:1px solid ${checked?'var(--gold)':'var(--border)'};border-radius:4px;font-size:11px;cursor:pointer;user-select:none">
+            <input type="checkbox" name="pv_${oi}" value="${a}"${checked?' checked':''} onchange="_onPlaceVoteCheck(${oi})" style="margin:0;width:11px;height:11px">
+            <span>${a}</span>
+          </label>`;
+        }).join('');
+        return `<div style="background:${isFixed?'rgba(93,202,165,.06)':'var(--bg2)'};border:1px solid ${isFixed?'var(--green)':isInvalid?'var(--red)':isPending?'var(--border2)':'var(--border)'};border-radius:6px;padding:8px 10px;opacity:${isFixed&&!isPending?0.6:1}">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            <div style="width:22px;height:22px;border-radius:3px;background:var(--bg3);border:1px solid var(--border2);color:var(--text1);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${oi+1}</div>
+            <span style="font-size:12px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
+            ${isFixed?`<span class="badge badge-green">${fixedAlpha}</span>`:isInvalid?`<span class="badge" style="background:var(--red-dim);color:var(--red);border:1px solid var(--red);font-size:9px;padding:1px 6px;border-radius:3px">無効</span>`:''}
+          </div>
+          ${isFixed
+            ?`<div style="font-size:11px;color:var(--green);text-align:center">位置 ${fixedAlpha} に確定済み</div>`
+            :isLocked
+              ?`<div style="font-size:11px;color:${savedVotes.length?'var(--text0)':'var(--text2)'};padding:3px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;text-align:center">投票: ${savedVotes.length?savedVotes.join(', '):'未投票'}</div>`
+              :`<div style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">${checkboxes}</div>`
+          }
+        </div>`;
+      }).join('')}
+    </div>`;
+  renderPlaceResult();
+  renderPlaceLog();
+}
+
+// チェックボックス onchange ハンドラ（DOM から最新を吸い上げて保存）
+function _onPlaceVoteCheck(oi){
+  const checks=document.querySelectorAll('input[name="pv_'+oi+'"]:checked');
+  placeVotes[oi]=Array.from(checks).map(c=>c.value).filter(Boolean);
+  savePlaceMeta();
+}
+
+async function unlockPlaceRound(){
+  if(!placeHistory.length) return;
+  const lastH=placeHistory[placeHistory.length-1];
+  if(!confirm(`ラウンド${lastH.round==='random'?'(ランダム)':lastH.round} の集計を解除しますか？\n（バッティングで無効化された投票も復元されます）`)) return;
+  const prevFixed=placeHistory.length>1?{...placeHistory[placeHistory.length-2].fixed}:{};
+  placeFixed={};
+  Object.entries(prevFixed).forEach(([a,v])=>{ placeFixed[a]=parseInt(v); });
+  // ファントム(origIdx=-1)を除外し、未確定プレイヤーリストを実プレイヤーのみで再構築
+  const allOis=players
+    .filter(p=>!isPhantom(p))
+    .map((p,i)=>p.origIdx!==undefined && p.origIdx>=0 ? p.origIdx : i);
+  const fixedOis=Object.values(placeFixed).map(Number);
+  pendingPlayers=allOis.filter(oi=>!fixedOis.includes(oi));
+
+  // C対応: 解除されたラウンドで投票が「無効化（バッティング含む）」になった人の投票内容を復元
+  // → これで「投票していた人だけ」ではなく「投票無効になった人も含めて投票権が復活」する
+  let restoredCount=0;
+  if(lastH.votes && typeof lastH.votes==='object'){
+    Object.entries(lastH.votes).forEach(([oiStr,v])=>{
+      const oi=parseInt(oiStr);
+      if(!pendingPlayers.includes(oi)) return;
+      const arr=_normalizeVotes(v);
+      if(arr.length>0){
+        placeVotes[oi]=arr;
+        restoredCount++;
+      }
+    });
+  }
+  // 残りは空配列で初期化
+  pendingPlayers.forEach(oi=>{ if(!Array.isArray(placeVotes[oi])) placeVotes[oi]=[]; });
+
+  placeHistory.pop();
+  placeRound=Math.max(1,placeHistory.filter(h=>h.round!=='random').length+1);
+  addPlaceLog('warn',`ラウンド集計解除 — 復元された投票: ${restoredCount}件（無効化票含む）`);
+  savePlaceMeta();
+  await applyPlaceResult();
+  renderPlacePanel();
+}
+
+function renderPlaceResult(){
+  const n=players.length;
+  document.getElementById('placeResultArea').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px">
+      ${Array.from({length:n},(_,pos)=>{
+        const alpha=ALPHA[pos];
+        const oi=placeFixed[alpha]!==undefined?Number(placeFixed[alpha]):undefined;
+        const assigned=oi!==undefined?getPlayerByOrigIdx(oi):null;
+        return `<div style="background:${assigned?'rgba(93,202,165,.08)':'var(--bg2)'};border:1px solid ${assigned?'var(--green)':'var(--border)'};border-radius:6px;padding:8px;text-align:center">
+          <div style="font-size:17px;font-weight:700;color:${assigned?'var(--green)':'var(--text2)'}">${alpha}</div>
+          <div style="font-size:10px;color:${assigned?'var(--text0)':'var(--text2)'};margin-top:3px">
+            ${assigned?`<span style="color:var(--text2);font-size:9px">P${oi+1}</span><br>${assigned.name}`:'未確定'}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--text2)">
+      確定: ${Object.keys(placeFixed).length}/${n}　未確定: ${pendingPlayers.length}人
+    </div>`;
+}
+
+function renderPlaceLog(){
+  document.getElementById('placeLogBox').innerHTML=placeLogs.map(e=>`
+    <div class="log-row"><span class="log-time">${e.t}</span><span class="log-${e.type}">${e.msg}</span></div>`).join('');
+}
+
+function addPlaceLog(type,msg){
+  placeLogs.unshift({t:ts(),type,msg});
+  renderPlaceLog();
+}
+
+// ── 投票配列ヘルパー: 旧データ（文字列/null）も配列に正規化 ──
+function _normalizeVotes(v){
+  if(Array.isArray(v)) return v.filter(x=>typeof x==='string'&&x.length>0);
+  if(typeof v==='string' && v.length>0) return [v];
+  return [];
+}
+
+function calcPlaceVotes(){
+  if(!pendingPlayers.length){addPlaceLog('warn','全員確定済みです');return;}
+  // UI（チェックボックス）から各プレイヤーの投票配列を取得（複数投票OK）
+  pendingPlayers.forEach(oi=>{
+    const checks=document.querySelectorAll('input[name="pv_'+oi+'"]:checked');
+    placeVotes[oi]=Array.from(checks).map(c=>c.value).filter(Boolean);
+  });
+
+  // 各 alpha への投票者集計（複数投票対応）
+  const alphaVoters={};  // {alpha: [oi, oi, ...]}
+  pendingPlayers.forEach(oi=>{
+    _normalizeVotes(placeVotes[oi]).forEach(a=>{
+      (alphaVoters[a]=alphaVoters[a]||[]).push(oi);
+    });
+  });
+
+  // バッティング判定
+  const contestedAlphas=new Set();   // 2 人以上から票が入った候補（無効）
+  const winningAlphaOi={};            // ただ 1 票のみ入った候補（候補→oi）
+  Object.entries(alphaVoters).forEach(([a,ois])=>{
+    if(ois.length>1) contestedAlphas.add(a);
+    else if(ois.length===1) winningAlphaOi[a]=ois[0];
+  });
+
+  // 各プレイヤーごとに判定: バッティング票を除いた残りで確定/無効を決める
+  const newFixed={};
+  const invalidatedOis=[];   // バッティング処理で投票が無効になった人
+  const noVoteOis=[];         // 投票しなかった人
+  const winLogs=[];           // 確定ログ
+  pendingPlayers.forEach(oi=>{
+    const votes=_normalizeVotes(placeVotes[oi]);
+    if(votes.length===0){ noVoteOis.push(oi); return; }
+    const uncontested=votes.filter(a=>!contestedAlphas.has(a));
+    if(uncontested.length===0){
+      // 全票バッティング → 無効
+      invalidatedOis.push(oi);
+    } else if(uncontested.length===1){
+      const alpha=uncontested[0];
+      if(winningAlphaOi[alpha]===oi && !newFixed[alpha]){
+        newFixed[alpha]=oi;
+        winLogs.push({oi,alpha});
+      } else {
+        invalidatedOis.push(oi);
+      }
+    } else {
+      // バッティングしていない票が複数 → すべて無効（仕様: B-4）
+      invalidatedOis.push(oi);
+    }
+  });
+
+  // ── 処理過程をログに出す（誤解防止のためディーラーに見せる）──
+  contestedAlphas.forEach(a=>{
+    const voters=alphaVoters[a];
+    addPlaceLog('warn',`バッティング: ${a} へ ${voters.map(oi=>{const p=getPlayerByOrigIdx(oi);return `P${oi+1}${p?'('+p.name+')':''}`;}).join('・')} → ${a} への票はすべて無効`);
+  });
+  winLogs.forEach(({oi,alpha})=>{
+    const p=getPlayerByOrigIdx(oi);
+    addPlaceLog('ok',`${alpha} → P${oi+1} ${p?p.name:''} 確定（非バッティング票が 1 つ）`);
+  });
+  invalidatedOis.forEach(oi=>{
+    const p=getPlayerByOrigIdx(oi);
+    const votes=_normalizeVotes(placeVotes[oi]);
+    const uncontested=votes.filter(a=>!contestedAlphas.has(a));
+    let reason;
+    if(uncontested.length===0) reason='全候補がバッティング';
+    else if(uncontested.length>1) reason=`非バッティング候補が複数（${uncontested.join('・')}）`;
+    else reason='処理失敗';
+    addPlaceLog('warn',`P${oi+1} ${p?p.name:''} の投票はすべて無効 — ${reason}`);
+  });
+  noVoteOis.forEach(oi=>{
+    const p=getPlayerByOrigIdx(oi);
+    addPlaceLog('info',`P${oi+1} ${p?p.name:''} は未投票`);
+  });
+
+  Object.assign(placeFixed, newFixed);
+  const fixedOis=Object.values(placeFixed).map(Number);
+  pendingPlayers=pendingPlayers.filter(oi=>!fixedOis.includes(oi) && oi>=0);
+  addPlaceLog('info',`集計完了 — 確定${Object.keys(placeFixed).length}名 / 未確定${pendingPlayers.length}名`);
+
+  // 履歴に保存（C対応: invalidated と各プレイヤーの投票内容を保持）
+  // votes は「全 pending プレイヤーの投票配列」を保存し、解除時の復元に使う
+  const votesSnapshot={};
+  pendingPlayers.concat(Object.values(newFixed).map(Number)).concat(invalidatedOis).forEach(oi=>{
+    if(!(oi in votesSnapshot)) votesSnapshot[oi]=_normalizeVotes(placeVotes[oi]);
+  });
+  placeHistory.push({
+    round:placeRound,
+    votes:votesSnapshot,
+    fixed:{...placeFixed},
+    contestedAlphas:[...contestedAlphas],
+    invalidated:[...invalidatedOis],
+    noVote:[...noVoteOis]
+  });
+
+  // 次ラウンドのため pending の投票内容をクリア（無効になった人は C で履歴から復元される）
+  pendingPlayers.forEach(oi=>{ placeVotes[oi]=[]; });
+
+  savePlaceMeta();
+  applyPlaceResult();
+  renderPlacePanel();
+}
+
+async function randomAssign(){
+  if(!pendingPlayers.length){addPlaceLog('warn','未確定者がいません');return;}
+  const freeAlphas=players.map((_,i)=>ALPHA[i]).filter(a=>!Object.keys(placeFixed).includes(a));
+  const shuffled=[...freeAlphas].sort(()=>Math.random()-.5);
+  const pendingShuffle=[...pendingPlayers].sort(()=>Math.random()-.5);
+  pendingShuffle.forEach((oi,j)=>{
+    if(j<shuffled.length){
+      placeFixed[shuffled[j]]=oi;
+      const p=getPlayerByOrigIdx(oi);
+      addPlaceLog('ok',`${shuffled[j]} → P${oi+1} ${p?p.name:''} ランダム確定`);
+    }
+  });
+  pendingPlayers=[];
+  addPlaceLog('ok','ランダム割当完了 — 全員確定');
+  placeHistory.push({round:'random',votes:{},fixed:{...placeFixed},conflicts:[],noVote:[]});
+  savePlaceMeta();
+  await applyPlaceResult();
+  renderPlacePanel();
+}
+
+async function applyPlaceResult(){
+  // 解除→再確定でも常に下流に反映されるよう、idempotent に再構築する
+  // 1. 現在の players からファントムを除外し origIdx 昇順の「pristine（場所適用前）」リストを作る
+  const pristine=players
+    .filter(p=>!isPhantom(p))
+    .slice()
+    .sort((a,b)=>{
+      const oa=(a.origIdx!==undefined?a.origIdx:0);
+      const ob=(b.origIdx!==undefined?b.origIdx:0);
+      return oa-ob;
+    });
+  const realCount=pristine.length;
+  const placedCount=Object.keys(placeFixed).length;
+  const allPlaced=(placedCount===realCount && realCount>0);
+  const phantomEnabled=(realCount%2===1 && realCount>=3);
+
+  if(!allPlaced){
+    // 場所決めが未完了 → 配置をリセット（ファントム除去 / alpha を初期値に戻す）
+    players=pristine.map((p,i)=>({...p, alpha:ALPHA[p.origIdx!==undefined?p.origIdx:i]}));
+    medals=players.map(p=>p.medals||realCount);
+    renderSetup();renderVote();renderAmida();renderResult();
+    await saveSession();
+    return;
+  }
+
+  // 全員確定 → 配置適用（PHANTOM: 奇数なら +1 スロット）
+  const N_total=phantomEnabled ? realCount+1 : realCount;
+  const newPlayers=Array(N_total).fill(null);
+  Object.entries(placeFixed).forEach(([alpha,oi])=>{
+    const pos=ALPHA.indexOf(alpha);
+    if(pos<0||pos>=N_total) return;
+    const p=pristine.find(x=>x.origIdx===Number(oi)) || getPlayerByOrigIdx(Number(oi));
+    if(p) newPlayers[pos]={...p, alpha, origIdx:Number(oi), isPhantom:false};
+  });
+  // PHANTOM: 空きスロットにファントムを配置
+  if(phantomEnabled){
+    for(let i=0;i<N_total;i++){
+      if(newPlayers[i]===null){
+        newPlayers[i]={
+          alpha:ALPHA[i],
+          name:'(空席)',
+          medals:0,
+          origIdx:-1,
+          isPhantom:true
+        };
+        addLog('info', `PHANTOM: 実プレイヤーが選ばなかった ${ALPHA[i]} がファントム位置に決定`);
+        break;
+      }
+    }
+  }
+  if(newPlayers.every(p=>p!==null)){
+    players=newPlayers;
+    medals=players.map(p=>isPhantom(p)?0:(p.medals||realCount));
+    addPlaceLog('ok','配置確定を反映しました');
+    addLog('ok','場所決め完了 — プレイヤー配置確定');
+    renderSetup();renderVote();renderAmida();renderResult();
+    await saveSession();
+  }
+}
+
+
+function nextPlaceRound(){
+  // 新ルール: 再投票1回限定 → R2 で未確定なら R3 へ進ませずランダム強制を促す
+  const maxRound = rulesConfig.placeReVoteOnce ? 2 : 3;
+  if(placeRound>=maxRound){
+    addPlaceLog('warn', rulesConfig.placeReVoteOnce
+      ? `新ルール: 再投票1回限定です。「ランダム割当」で残りを確定してください`
+      : `最終ラウンドです。「ランダム割当」で未確定者を確定してください`);
+    return;
+  }
+  placeRound++;
+  const newMin=placeRound===1?10:5;
+  placeTimerSec=newMin*60; placeTimerMax=placeTimerSec;
+  clearInterval(placeTimerInt); placeTimerRunning=false;
+  addPlaceLog('info',`ラウンド${placeRound}開始${rulesConfig.placeReVoteOnce?' (新ルール: 再投票はこのラウンドが最終)':''}`);
+  renderPlacePanel();
+}
+
+// 場所決めタイマー
+function togglePlaceTimer(){
+  if(placeTimerRunning){
+    clearInterval(placeTimerInt); placeTimerRunning=false;
+    document.getElementById('placeTimerBtn').textContent='▶';
+  } else {
+    placeTimerRunning=true;
+    document.getElementById('placeTimerBtn').textContent='⏸';
+    placeTimerInt=setInterval(()=>{
+      if(placeTimerSec>0){placeTimerSec--;updatePlaceTimer();}
+      else{clearInterval(placeTimerInt);placeTimerRunning=false;document.getElementById('placeTimerBtn').textContent='▶';}
+    },1000);
+  }
+}
+function resetPlaceTimer(){
+  clearInterval(placeTimerInt); placeTimerRunning=false;
+  placeTimerSec=placeTimerMax;
+  document.getElementById('placeTimerBtn').textContent='▶';
+  updatePlaceTimer();
+}
+function updatePlaceTimer(){
+  const m=Math.floor(placeTimerSec/60),s=placeTimerSec%60;
+  const el=document.getElementById('placeTimerDisp');
+  if(!el) return;
+  el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  el.style.color=placeTimerSec<=30?'var(--red)':placeTimerSec<=60?'var(--gold)':'var(--green)';
+}
+
+addLog('info','ツール起動');
+</script>
+</body>
+</html>
