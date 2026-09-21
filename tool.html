@@ -1551,8 +1551,8 @@ function drawAmidaSVG(e, t, n, r, a, s) {
       I = isHidden(n),
       A = isLocked(n);
     I
-      ? ((i += `<line id="bar_${n}" x1="${b.toFixed(1)}" y1="${y.toFixed(1)}" x2="${h.toFixed(1)}" y2="${f.toFixed(1)}" stroke="#3a3a36" stroke-width="1" stroke-dasharray="2 4" stroke-linecap="round" opacity="0.35" ${$} ${S}/>`),
-        (i += `<text x="${v.toFixed(1)}" y="${x.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="7" fill="#5a5a56" opacity="0.45" style="pointer-events:none" id="barlbl_${n}">${_labelForBar(n, t)}</text>`))
+      ? // 不可視線は投票（プラスカードでの可視化）があるまで描画しない
+        void 0
       : A
         ? ((i += `<line id="bar_${n}" x1="${b.toFixed(1)}" y1="${y.toFixed(1)}" x2="${h.toFixed(1)}" y2="${f.toFixed(1)}" stroke="#e24b4a" stroke-width="2.5" stroke-linecap="round" opacity="0.85" ${$} ${S}/>`),
           (i += `<line x1="${b.toFixed(1)}" y1="${y.toFixed(1)}" x2="${h.toFixed(1)}" y2="${f.toFixed(1)}" stroke="#0a0a08" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round" opacity="0.85" pointer-events="none"/>`),
@@ -1745,6 +1745,9 @@ function renderBarGrid() {
         r2 = Array.from({ length: e }, (t, r) => {
         const a = r + i * e;
         if (a >= bars.length) return '<td style="padding:3px 4px"></td>';
+        if (isHidden(a))
+          // 不可視線は可視化されるまで操作不可（誤トグルで不整合になるのを防ぐ）
+          return `<td style="padding:2px 3px;text-align:center">\n        <div title="不可視線（プラス投票で可視化されるまで盤面に現れません）" style="padding:2px 5px;border-radius:3px;border:1px dotted var(--border);background:var(--bg0);font-size:10px;color:var(--text2);opacity:.45;white-space:nowrap">${_labelForBar(a, players.length)} 🕳</div>\n      </td>`;
         const s = bars[a];
         return `<td style="padding:2px 3px;text-align:center">\n        <div onclick="toggleBar(${a})" style="cursor:pointer;padding:2px 5px;border-radius:3px;border:1px solid ${s ? "#e24b4a" : "var(--border)"};background:${s ? "var(--red-dim)" : "var(--bg2)"};font-size:10px;color:${s ? "#e24b4a" : "var(--text2)"};${s ? "" : "text-decoration:line-through;opacity:.5"};transition:.12s;white-space:nowrap">${_labelForBar(a, players.length)}</div>\n      </td>`;
       }).join("");
