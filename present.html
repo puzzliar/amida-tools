@@ -782,7 +782,7 @@ function buildAmidaSVG(e, t) {
         ((x += `<line x1="${y.toFixed(1)}" y1="${g.toFixed(1)}" x2="${b.toFixed(1)}" y2="${$.toFixed(1)}" stroke="${e}" stroke-width="${t}" stroke-linecap="round"/>`),
           (x += `<g transform="translate(${w.toFixed(1)},${k.toFixed(1)}) rotate(${S.toFixed(1)})" style="pointer-events:none">\n<rect x="-14" y="-9" width="28" height="18" rx="3" fill="rgba(0,0,0,.65)"/>\n<text text-anchor="middle" dominant-baseline="central" font-size="11" font-weight="bold" fill="${n}">${M}</text>\n</g>`));
       }
-    } else
+    } else if ("0" !== M.slice(1))
       ((x += `<line x1="${y.toFixed(1)}" y1="${g.toFixed(1)}" x2="${b.toFixed(1)}" y2="${$.toFixed(1)}" stroke="#585854" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round" opacity="0.7"/>`),
         (x += `<g transform="translate(${w.toFixed(1)},${k.toFixed(1)}) rotate(${S.toFixed(1)})" style="pointer-events:none" opacity="0.5">\n<text text-anchor="middle" dominant-baseline="central" font-size="9" fill="#585854">${M}</text>\n</g>`));
   });
