@@ -156,7 +156,7 @@ tt = s0
 while tt < s1 - 0.05:
     prog = (tt - s0) / (s1 - s0)
     g = 0.10 + 0.14 * prog
-    if 28 <= tt < 29.0 or 37 <= tt < 37.6:
+    if 28 <= tt < 29.0 or 45 <= tt < 45.6:
         g *= 0.2
     add(pluck(pattern[i % 16]), tt, g, pan=-0.25 if i % 2 else 0.25)
     add(pluck(pattern[i % 16] * 2, 0.3), tt, g * 0.35, pan=0.4 if i % 2 else -0.4)

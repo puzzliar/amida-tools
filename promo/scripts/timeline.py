@@ -7,22 +7,27 @@ SHOTS3D = [
     ("build", 151, 240),
     ("title", 391, 150),
     ("rule", 541, 300),
-    ("screens", 841, 270),
+    ("screens", 841, 90, 160),   # (name, start, length, offset into the rendered sequence)
     ("cards", 1441, 180),
 ]
 
 D = "PXL_20261017_0"
 COLD_OPEN = [(D + "55603782.jpg", 1, 75, (1.00, 1.10), (0.00, -0.03)),   # grandfather clock
              (D + "55648571.jpg", 76, 75, (1.12, 1.02), (0.02, 0.0))]     # crystal chandelier
+# live-action chip footage (Drive videos), 0:31-0:45
+# (name, source video, source start sec, vse_start, length, (scale0, scale1), (dx, dy) drift)
+V = "PXL_20261017_0"
+CLIPS = [
+    ("case_front", V + "40954247.mp4", 8.3, 931, 120, (1.00, 1.08), (0.0, 0.0)),    # latches undone, lid lifts on the chips
+    ("case_angle", V + "41241358.mp4", 11.6, 1051, 90, (1.10, 1.02), (0.02, 0.0)),  # second angle on the open case
+    ("hand_off", V + "42358932.mp4", 8.3, 1141, 105, (1.04, 1.14), (0.0, 0.0)),    # chips passed hand to hand
+    ("deal", V + "41614139.mp4", 18.7, 1246, 105, (1.08, 1.16), (-0.02, -0.01)),    # chips handed across the table
+]
+CASE_OPEN = 1020      # frame where the lid comes up (accent hit)
 MONTAGE = [  # file, start, length, (scale0, scale1), (dx, dy) drift
-    (D + "55553474.jpg", 1111, 50, (1.02, 1.12), (0.0, 0.0)),    # arch into the red room
-    (D + "55614322.jpg", 1161, 30, (1.10, 1.18), (-0.02, 0.0)),  # motion-blurred armchair
-    (D + "55547304.jpg", 1191, 45, (1.12, 1.03), (0.03, 0.0)),   # black chair & mirror
-    (D + "55721011.jpg", 1236, 45, (1.02, 1.10), (0.0, -0.02)),  # throne on the stage
-    (D + "55623591.jpg", 1281, 40, (1.10, 1.02), (-0.03, 0.0)),  # chandelier, red & green
-    (D + "55714909.jpg", 1321, 40, (1.03, 1.12), (0.02, 0.01)),  # books & candles
-    (D + "55727407.jpg", 1361, 40, (1.12, 1.04), (0.0, 0.02)),   # curtains, leather chair
-    (D + "55538791.jpg", 1401, 40, (1.02, 1.10), (0.0, 0.0)),    # the black salon
+    (D + "55553474.jpg", 1351, 30, (1.02, 1.10), (0.0, 0.0)),    # arch into the red room
+    (D + "55721011.jpg", 1381, 30, (1.10, 1.02), (0.0, -0.02)),  # throne on the stage
+    (D + "55538791.jpg", 1411, 30, (1.02, 1.10), (0.0, 0.0)),    # the black salon
 ]
 END_START = 1621      # key art
 END_CARD = 1741       # booking card overlay begins
@@ -37,20 +42,20 @@ CAPTIONS = [
     ("中央への〈最短ルート〉を作れ。", 596, 718, 0.140, 72, "gold", "plain"),
     ("最短ルートのプレイヤーの", 736, 842, 0.235, 58, "ivory", "plain"),
     ("メダルを最も多く持つ者が、勝つ。", 752, 842, 0.140, 72, "gold", "plain"),
-    ("協力か。　裏切りか。", 862, 968, 0.150, 88, "ivory", "plain"),
-    ("嘘と信頼が入り混じる、", 980, 1112, 0.240, 52, "ivory", "plain"),
-    ("スリリングな交渉ゲーム。", 994, 1112, 0.145, 80, "gold", "plain"),
-    ("その言葉は、真実か。", 1118, 1192, 0.50, 76, "ivory", "plain"),
-    ("手を組んだ相手が、最後に裏切る。", 1212, 1302, 0.50, 76, "ivory", "plain"),
-    ("疑え。信じろ。──そして、出し抜け。", 1326, 1440, 0.50, 76, "gold", "plain"),
+    ("協力か。　裏切りか。", 850, 930, 0.150, 88, "ivory", "plain"),
+    ("嘘と信頼が入り混じる、", 948, 1136, 0.240, 52, "ivory", "plain"),
+    ("スリリングな交渉ゲーム。", 962, 1136, 0.145, 80, "gold", "plain"),
+    ("その言葉は、真実か。", 1150, 1240, 0.150, 76, "ivory", "plain"),
+    ("手を組んだ相手が、最後に裏切る。", 1256, 1346, 0.150, 76, "ivory", "plain"),
+    ("疑え。信じろ。──そして、出し抜け。", 1354, 1440, 0.50, 76, "gold", "plain"),
     ("息を呑む駆け引き。張り詰めた沈黙。", 1452, 1534, 0.165, 60, "ivory", "plain"),
     ("騙し合いの頭脳戦を、その身で。", 1540, 1632, 0.165, 72, "gold", "plain"),
 ]
 
 # sound cues in seconds
-HITS = [5.0, 13.0, 18.0, 28.0, 37.0, 48.0, 54.0, 58.0]
-RISERS = [(10.6, 13.0), (34.8, 37.0), (51.6, 54.0), (56.4, 58.0)]
+HITS = [5.0, 13.0, 18.0, 28.0, (CASE_OPEN - 1) / FPS, 45.0, 48.0, 54.0, 58.0]
+RISERS = [(10.6, 13.0), (32.2, (CASE_OPEN - 1) / FPS), (42.8, 45.0), (51.6, 54.0), (56.4, 58.0)]
 TICKS = (0.0, 5.0)
 OSTINATO = (18.0, 48.0)
 HEART = (48.0, 54.0)
-MONTAGE_CUTS = [(s - 1) / FPS for _, s, *_ in MONTAGE[1:]]
+MONTAGE_CUTS = [(c[3] - 1) / FPS for c in CLIPS[1:]] + [(s - 1) / FPS for _, s, *_ in MONTAGE[1:]]

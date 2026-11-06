@@ -82,12 +82,12 @@ def photo(fname, f0, n, scales, drift, fade_in=0, fade_out=0):
     return s
 
 
-def sequence(name, f0, n):
-    files = sorted(glob.glob(RENDER + name + "/*.png"))
+def sequence(name, f0, n, offset=0, root=None, ext="png", fit="FIT"):
+    files = sorted(glob.glob((root or RENDER) + name + "/*." + ext))[offset:]
     if not files:
         print("WARNING missing", name)
         return None
-    s = ST.new_image(name, files[0], next_ch(), f0, fit_method="FIT")
+    s = ST.new_image(name, files[0], next_ch(), f0, fit_method=fit)
     for f in files[1:]:
         s.elements.append(os.path.basename(f))
     s.frame_final_duration = min(n, len(files))
@@ -157,8 +157,16 @@ a1 = photo(*COLD_OPEN[0], fade_in=24, fade_out=10)
 a2 = photo(*COLD_OPEN[1], fade_in=10)
 
 # ------------------------------------------------------------------ 3D shots
-for name, f0, n in SHOTS3D:
-    sequence(name, f0, n)
+for name, f0, n, *off in SHOTS3D:
+    sequence(name, f0, n, off[0] if off else 0)
+
+# ------------------------------------------------------------------ live-action chip footage
+for i, (name, _, _, f0, n, scales, drift) in enumerate(CLIPS):
+    s = sequence(name, f0, n, root=G + "clips/", ext="jpg", fit="FILL")
+    if s:
+        kenburns(s, f0, n, scales, drift)
+        grade(s, mult=0.80, sat=0.80)
+    flash(f0, 0.6 if i == 0 else 0.4, 6)
 
 # ------------------------------------------------------------------ F: montage (hard cuts + flashes)
 for i, m in enumerate(MONTAGE):
@@ -185,9 +193,9 @@ for h in HITS:
     flash(int(round(h * FPS)) + 1, 0.9 if h in (13.0, 58.0) else 0.7, 10)
 
 # overlays: vignette on photo sections, bottom gradient under lower captions
-for f0, n in [(1, 150), (1111, 330), (END_START, 120)]:
+for f0, n in [(1, 150), (931, 510), (END_START, 120)]:
     overlay(G + "vignette.png", f0, n, 30, 1.0, fade=4)
-for f0, n in [(151, 240), (541, 300), (841, 270), (1441, 180)]:
+for f0, n in [(151, 240), (541, 300), (841, 510), (1441, 180)]:
     overlay(G + "bottomgrad.png", f0 + 20, n - 20, 31, 1.0, fade=14)
 
 # ------------------------------------------------------------------ captions
