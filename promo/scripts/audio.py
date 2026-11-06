@@ -9,6 +9,7 @@ DUR = TOTAL / FPS
 N = int(SR * DUR)
 t = np.arange(N) / SR
 rng = np.random.default_rng(7)
+MUSIC_GAIN = 0.55
 L = np.zeros(N)
 R = np.zeros(N)
 
@@ -75,7 +76,7 @@ lfo = 0.5 + 0.5 * np.sin(2 * np.pi * 0.07 * t)
 bed = lowpass(bed, 260) * (0.6 + 0.4 * lfo)
 bed_env = np.interp(t, [0, 4.5, 5, 13, 18, 28, 37, 48, 54, 57.8, 58, 62, 64],
                     [0.25, 0.4, 0.55, 0.55, 0.6, 0.65, 0.75, 0.6, 0.45, 0.2, 0.75, 0.55, 0.0])
-bed *= bed_env * 0.10
+bed *= bed_env * 0.04
 L += bed
 R += np.roll(bed, 300)
 
@@ -90,7 +91,7 @@ L += cl
 R += np.roll(cl, 700)
 
 # ---------------------------------------------------------------- clock ticks
-for k, s in enumerate(np.arange(TICKS[0] + 0.35, TICKS[1], 0.5)):
+for k, s in enumerate(np.arange(TICKS[0] + 0.5, TICKS[1], 0.5)):
     n = int(0.06 * SR)
     nz = rng.standard_normal(n)
     tick = bandpass(nz, 1800, 6000) * env(n, 0.0005, 0.008)
@@ -136,48 +137,6 @@ for a, b in RISERS:
     add(riser(b - a), a, 0.32)
 
 
-# ---------------------------------------------------------------- ostinato (plucked minor pattern)
-def pluck(f, d=0.5):
-    n = int(d * SR)
-    tt = np.arange(n) / SR
-    s = np.zeros(n)
-    for k, g in [(1, 1), (2, 0.5), (3, 0.25), (4, 0.12)]:
-        s += np.sin(2 * np.pi * f * k * tt) * g * np.exp(-tt * (6 + 3 * k))
-    return s * env(n, 0.002, 0.25)
-
-
-A2, Bb2, C3, E3, D3, F3 = 110.0, 116.54, 130.81, 164.81, 146.83, 174.61
-pattern = [A2, A2, C3, A2, Bb2, A2, E3, A2, A2, A2, C3, A2, F3, E3, Bb2, A2]
-bpm = 112
-step = 60 / bpm / 2
-s0, s1 = OSTINATO
-i = 0
-tt = s0
-while tt < s1 - 0.05:
-    prog = (tt - s0) / (s1 - s0)
-    g = 0.10 + 0.14 * prog
-    if 28 <= tt < 29.0 or 45 <= tt < 45.6:
-        g *= 0.2
-    elif SLOWMO[0] <= tt < SLOWMO[1]:
-        g *= 0.22  # the beat falls away under the slow-motion footage
-    add(pluck(pattern[i % 16]), tt, g, pan=-0.25 if i % 2 else 0.25)
-    add(pluck(pattern[i % 16] * 2, 0.3), tt, g * 0.35, pan=0.4 if i % 2 else -0.4)
-    i += 1
-    tt += step
-
-# ---------------------------------------------------------------- heartbeat
-hb0, hb1 = HEART
-tt = hb0 + 0.25
-k = 0
-while tt < hb1 - 0.3:
-    for off, g in [(0, 1.0), (0.22, 0.7)]:
-        n = int(0.4 * SR)
-        x = np.arange(n) / SR
-        s = np.sin(2 * np.pi * (48 + 30 * np.exp(-x * 30)) * x) * np.exp(-x * 11)
-        add(s, tt + off, 0.7 * g)
-    tt += 60 / (66 + k * 6)
-    k += 1
-
 # ---------------------------------------------------------------- whooshes on montage cuts
 for c in MONTAGE_CUTS:
     d = 0.45
@@ -186,7 +145,7 @@ for c in MONTAGE_CUTS:
     w = bandpass(rng.standard_normal(n), 400, 4000) * np.sin(np.pi * x) ** 2 * x
     add(w, c - d * 0.8, 0.22, pan=rng.uniform(-0.5, 0.5))
 
-# ---------------------------------------------------------------- slow-motion section: tape-stop, static, slowed pulse
+# ---------------------------------------------------------------- slow-motion section: tape-stop, static
 sm0, sm1 = SLOWMO
 # tape-stop into slow motion: a bright chord whose pitch sags and dies
 n = int(1.1 * SR)
@@ -208,15 +167,6 @@ for gt in GLITCH_TIMES:
     b = bandpass(rng.standard_normal(n), 800, 7000) * env(n, 0.002, 0.05)
     b += np.sign(np.sin(2 * np.pi * 60 * np.arange(n) / SR)) * env(n, 0.002, 0.04) * 0.3  # mains buzz
     add(b, gt, 0.45, pan=rng.uniform(-0.6, 0.6))
-# slowed, sub-heavy pulse under the handovers (like a heartbeat heard underwater)
-tt = 38.0
-while tt < sm1 - 0.4:
-    n = int(0.9 * SR)
-    x = np.arange(n) / SR
-    s = np.sin(2 * np.pi * (38 + 20 * np.exp(-x * 12)) * x) * np.exp(-x * 4.5)
-    add(lowpass(s, 180), tt, 0.55)
-    tt += 60 / 52
-
 # ---------------------------------------------------------------- final chord
 n = int(6 * SR)
 x = np.arange(n) / SR
@@ -224,7 +174,13 @@ ch = np.zeros(n)
 for f in [110, 164.81, 220, 261.63, 329.63, 493.88]:
     ch += saw(f, x, 8) * 0.18
 ch = lowpass(ch, 1400) * smoothstep(x / 0.6) * np.interp(x, [0, 3.5, 6], [1, 0.7, 0])
-add(ch, 58.0, 0.10)
+add(ch, 58.0, 0.05)
+
+# ---------------------------------------------------------------- score (music.py)
+import music
+mL, mR, _ = music.render(N, SR)
+L += mL * MUSIC_GAIN
+R += mR * MUSIC_GAIN
 
 # ---------------------------------------------------------------- reverb + master
 ir_n = int(2.4 * SR)
@@ -247,9 +203,10 @@ R2 = R + wetR
 fade = np.interp(t, [0, 0.05, DUR - 2.0, DUR], [0, 1, 1, 0])
 L2 *= fade
 R2 *= fade
-pk = max(np.abs(L2).max(), np.abs(R2).max())
-L2 = np.tanh(L2 / pk * 1.15) / np.tanh(1.15) * 0.89
-R2 = np.tanh(R2 / pk * 1.15) / np.tanh(1.15) * 0.89
+# soft-clip master: scale on a high percentile (drum transients get rounded off, not the whole mix turned down)
+pk = np.percentile(np.abs(np.concatenate([L2, R2])), 99.95)
+L2 = np.tanh(L2 / pk * 0.95) * 0.89
+R2 = np.tanh(R2 / pk * 0.95) * 0.89
 out = np.stack([L2, R2], 1)
 pcm = (out * 32767).astype("<i2")
 path = sys.argv[1]
