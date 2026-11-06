@@ -158,6 +158,8 @@ while tt < s1 - 0.05:
     g = 0.10 + 0.14 * prog
     if 28 <= tt < 29.0 or 45 <= tt < 45.6:
         g *= 0.2
+    elif SLOWMO[0] <= tt < SLOWMO[1]:
+        g *= 0.22  # the beat falls away under the slow-motion footage
     add(pluck(pattern[i % 16]), tt, g, pan=-0.25 if i % 2 else 0.25)
     add(pluck(pattern[i % 16] * 2, 0.3), tt, g * 0.35, pan=0.4 if i % 2 else -0.4)
     i += 1
@@ -183,6 +185,37 @@ for c in MONTAGE_CUTS:
     x = np.linspace(0, 1, n)
     w = bandpass(rng.standard_normal(n), 400, 4000) * np.sin(np.pi * x) ** 2 * x
     add(w, c - d * 0.8, 0.22, pan=rng.uniform(-0.5, 0.5))
+
+# ---------------------------------------------------------------- slow-motion section: tape-stop, static, slowed pulse
+sm0, sm1 = SLOWMO
+# tape-stop into slow motion: a bright chord whose pitch sags and dies
+n = int(1.1 * SR)
+x = np.arange(n) / SR
+fall = np.cumsum(np.interp(x, [0, 1.1], [1.0, 0.12]) ** 1.5) / SR
+ts = sum(np.sin(2 * np.pi * f * fall) for f in (220, 261.63, 329.63)) * np.interp(x, [0, 0.05, 0.9, 1.1], [0, 1, 0.6, 0])
+add(lowpass(ts, 2500), sm0 - 0.55, 0.16)
+# crackling static bed
+n = int((sm1 - sm0) * SR)
+x = np.arange(n) / SR
+hiss = bandpass(rng.standard_normal(n), 2500, 9000) * 0.25
+clicks = (rng.random(n) > 0.9993) * rng.standard_normal(n) * 6
+crackle = hiss + lowpass(clicks, 6000)
+add(crackle * np.interp(x, [0, 0.4, n / SR - 1.0, n / SR], [0, 1, 1, 0]), sm0, 0.10, pan=-0.2)
+add(np.roll(crackle, 9000) * np.interp(x, [0, 0.4, n / SR - 1.0, n / SR], [0, 1, 1, 0]), sm0, 0.10, pan=0.2)
+# static bursts on the picture glitches
+for gt in GLITCH_TIMES:
+    n = int(0.12 * SR)
+    b = bandpass(rng.standard_normal(n), 800, 7000) * env(n, 0.002, 0.05)
+    b += np.sign(np.sin(2 * np.pi * 60 * np.arange(n) / SR)) * env(n, 0.002, 0.04) * 0.3  # mains buzz
+    add(b, gt, 0.45, pan=rng.uniform(-0.6, 0.6))
+# slowed, sub-heavy pulse under the handovers (like a heartbeat heard underwater)
+tt = 38.0
+while tt < sm1 - 0.4:
+    n = int(0.9 * SR)
+    x = np.arange(n) / SR
+    s = np.sin(2 * np.pi * (38 + 20 * np.exp(-x * 12)) * x) * np.exp(-x * 4.5)
+    add(lowpass(s, 180), tt, 0.55)
+    tt += 60 / 52
 
 # ---------------------------------------------------------------- final chord
 n = int(6 * SR)

@@ -161,7 +161,7 @@ for name, f0, n, *off in SHOTS3D:
     sequence(name, f0, n, off[0] if off else 0)
 
 # ------------------------------------------------------------------ live-action chip footage
-for i, (name, _, _, f0, n, scales, drift) in enumerate(CLIPS):
+for i, (name, _, _, f0, n, scales, drift, *_) in enumerate(CLIPS):
     s = sequence(name, f0, n, root=G + "clips/", ext="jpg", fit="FILL")
     if s:
         kenburns(s, f0, n, scales, drift)

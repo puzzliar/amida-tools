@@ -14,16 +14,16 @@ SHOTS3D = [
 D = "PXL_20261017_0"
 COLD_OPEN = [(D + "55603782.jpg", 1, 75, (1.00, 1.10), (0.00, -0.03)),   # grandfather clock
              (D + "55648571.jpg", 76, 75, (1.12, 1.02), (0.02, 0.0))]     # crystal chandelier
-# live-action chip footage (Drive videos), 0:31-0:45
-# (name, source video, source start sec, vse_start, length, (scale0, scale1), (dx, dy) drift)
+# live-action chip footage (Drive videos), 0:31-0:45, slowed down with grain/flicker/glitches (prep3.py)
+# (name, source video, source start sec, vse_start, length, (scale0, scale1), (dx, dy) drift, speed)
 V = "PXL_20261017_0"
 CLIPS = [
-    ("case_front", V + "40954247.mp4", 8.3, 931, 120, (1.00, 1.08), (0.0, 0.0)),    # latches undone, lid lifts on the chips
-    ("case_angle", V + "41241358.mp4", 11.6, 1051, 90, (1.10, 1.02), (0.02, 0.0)),  # second angle on the open case
-    ("hand_off", V + "42358932.mp4", 8.3, 1141, 105, (1.04, 1.14), (0.0, 0.0)),    # chips passed hand to hand
-    ("deal", V + "41614139.mp4", 18.7, 1246, 105, (1.08, 1.16), (-0.02, -0.01)),    # chips handed across the table
+    ("case_front", V + "40954247.mp4", 9.5, 931, 120, (1.00, 1.08), (0.0, 0.0), 0.6),     # latches undone, lid lifts on the chips
+    ("case_angle", V + "41241358.mp4", 12.0, 1051, 90, (1.10, 1.02), (0.02, 0.0), 0.5),   # second angle on the opening case
+    ("deal", V + "41614139.mp4", 19.9, 1141, 105, (1.08, 1.16), (-0.02, -0.01), 0.5),     # chips handed across the table
+    ("hand_off", V + "42358932.mp4", 9.2, 1246, 105, (1.04, 1.14), (0.0, 0.0), 0.5),      # chips passed hand to hand
 ]
-CASE_OPEN = 1020      # frame where the lid comes up (accent hit)
+CASE_OPEN = 1025      # frame where the lid comes up (accent hit)
 MONTAGE = [  # file, start, length, (scale0, scale1), (dx, dy) drift
     (D + "55553474.jpg", 1351, 30, (1.02, 1.10), (0.0, 0.0)),    # arch into the red room
     (D + "55721011.jpg", 1381, 30, (1.10, 1.02), (0.0, -0.02)),  # throne on the stage
@@ -58,4 +58,13 @@ RISERS = [(10.6, 13.0), (32.2, (CASE_OPEN - 1) / FPS), (42.8, 45.0), (51.6, 54.0
 TICKS = (0.0, 5.0)
 OSTINATO = (18.0, 48.0)
 HEART = (48.0, 54.0)
+SLOWMO = (31.0, 45.0)  # music thins out, static and low pulses take over
+
+
+def clip_glitches(idx, n):
+    """clip-local frames (0-based) where the picture tears for 2 frames"""
+    return [0, n // 2 + 7 * idx - 9, n - 4]
+
+
+GLITCH_TIMES = [(c[3] + f) / FPS for i, c in enumerate(CLIPS) for f in clip_glitches(i, c[4])]
 MONTAGE_CUTS = [(c[3] - 1) / FPS for c in CLIPS[1:]] + [(s - 1) / FPS for _, s, *_ in MONTAGE[1:]]
