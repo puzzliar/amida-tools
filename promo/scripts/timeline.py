@@ -21,8 +21,15 @@ CLIPS = [
     ("case_front", V + "40954247.mp4", 9.5, 931, 120, (1.00, 1.08), (0.0, 0.0), 0.6),     # latches undone, lid lifts on the chips
     ("case_angle", V + "41241358.mp4", 12.0, 1051, 90, (1.10, 1.02), (0.02, 0.0), 0.5),   # second angle on the opening case
     ("deal", V + "41614139.mp4", 19.9, 1141, 105, (1.08, 1.16), (-0.02, -0.01), 0.5),     # chips handed across the table
-    ("hand_off", V + "42358932.mp4", 9.2, 1246, 105, (1.04, 1.14), (0.0, 0.0), 0.5),      # chips passed hand to hand
+    ("hand_off", V + "42358932.mp4", 9.2, 1246, 105, (1.00, 1.06), (0.0, 0.0), 0.5),      # chips passed hand to hand (FOCUS)
 ]
+# per-clip reframing: crop in on a tracked point, keep an ellipse around it sharp and blur the rest
+# track: (clip frame, x, y) in source 1920x1080 pixels; sharp: ellipse half-axes in output pixels
+FOCUS = {
+    "hand_off": dict(zoom=1.3, sharp=(660, 340), blur=26,
+                     track=[(0, 1090, 720), (13, 1060, 740), (26, 1090, 740), (39, 1110, 800), (52, 1090, 790),
+                            (65, 1060, 785), (78, 1020, 770), (91, 1010, 740), (104, 980, 720)]),
+}
 CASE_OPEN = 1025      # frame where the lid comes up (accent hit)
 MONTAGE = [  # file, start, length, (scale0, scale1), (dx, dy) drift
     (D + "55553474.jpg", 1351, 30, (1.02, 1.10), (0.0, 0.0)),    # arch into the red room
