@@ -47,10 +47,11 @@ def kf(obj, path, frame, value, index=-1):
         obj.keyframe_insert(path, frame=frame)
 
 
-def kenburns(s, f0, n, scales, drift):
+def kenburns(s, f0, n, scales, drift, base=(0, 0)):
     tr = s.transform
     bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
-    for f, sc_, dx, dy in [(f0, scales[0], 0, 0), (f0 + n, scales[1], drift[0] * 1920, drift[1] * 1080)]:
+    bx, by = base
+    for f, sc_, dx, dy in [(f0, scales[0], bx, by), (f0 + n, scales[1], bx + drift[0] * 1920, by + drift[1] * 1080)]:
         tr.scale_x = tr.scale_y = sc_
         tr.offset_x, tr.offset_y = dx, dy
         for p in ("scale_x", "scale_y", "offset_x", "offset_y"):
@@ -74,7 +75,7 @@ def grade(s, mult=0.82, sat=0.78, warm=True):
 def photo(fname, f0, n, scales, drift, fade_in=0, fade_out=0):
     s = ST.new_image(fname, G + "photos/" + fname, next_ch(), f0, fit_method="FILL")
     s.frame_final_duration = n + fade_out
-    kenburns(s, f0, n + fade_out, scales, drift)
+    kenburns(s, f0, n + fade_out, scales, drift, PHOTO_OFFSET.get(fname, (0, 0)))
     grade(s)
     if fade_in:
         kf(s, "blend_alpha", f0, 0.0)
@@ -128,8 +129,8 @@ def caption(txt, f0, f1, y, size, col, fnt=FONT_B, x=0.5, fade=10, box=None, dri
     s.color = COL[col] if isinstance(col, str) else col
     s.use_shadow = True
     s.shadow_color = (0, 0, 0, 0.9)
-    s.shadow_blur = 0.6
-    s.shadow_offset = 3
+    s.shadow_blur = 0.7
+    s.shadow_offset = 0.04  # relative to the font size (3 put a blurred copy a whole line below)
     s.anchor_x = "CENTER"
     s.anchor_y = "CENTER"
     s.alignment_x = "CENTER"
@@ -158,7 +159,29 @@ a2 = photo(*COLD_OPEN[1], fade_in=10)
 
 # ------------------------------------------------------------------ 3D shots
 for name, f0, n, *off in SHOTS3D:
-    sequence(name, f0, n, off[0] if off else 0)
+    s3 = sequence(name, f0, n, off[0] if off else 0)
+    if name == "cards" and s3:
+        s3.color_multiply = 0.8  # the spot-lit tabletop sits much brighter than the shots around it
+    if name == "screens" and s3:
+        # push in on the panels so the presentation tool reads (timer, amida board, results)
+        kenburns(s3, f0, n, (1.28, 1.40), (0.0, 0.0))
+
+# official logotype (cut from the key art) over the title shot, so the opening matches the ending
+T0 = dict((n_, f_) for n_, f_, *_ in SHOTS3D)["title"]
+logo = ST.new_image("title_logo", G + "title_logo.png", 45, T0 + 8, fit_method="ORIGINAL")
+logo.frame_final_duration = 150 - 8
+logo.blend_type = "ALPHA_OVER"
+bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
+for f, sc_ in [(T0 + 8, 0.70), (T0 + 150, 0.76)]:
+    logo.transform.scale_x = logo.transform.scale_y = sc_
+    logo.transform.offset_y = 40
+    for p_ in ("scale_x", "scale_y", "offset_y"):
+        logo.transform.keyframe_insert(p_, frame=f)
+bpy.context.preferences.edit.keyframe_new_interpolation_type = "BEZIER"
+kf(logo, "blend_alpha", T0 + 8, 0.0)
+kf(logo, "blend_alpha", T0 + 34, 1.0)
+kf(logo, "blend_alpha", T0 + 140, 1.0)
+kf(logo, "blend_alpha", T0 + 150, 0.0)
 
 # ------------------------------------------------------------------ live-action chip footage
 for i, (name, _, _, f0, n, scales, drift, *_) in enumerate(CLIPS):
@@ -185,12 +208,13 @@ kf(hero, "blend_alpha", END_START + 14, 1.0)
 
 # flashes on every hit
 for h in HITS:
-    flash(int(round(h * FPS)) + 1, 0.9 if h in (13.0, 58.0) else 0.7, 10)
+    # 0:48 cuts to an already bright tabletop: keep that flash small so the frame does not wash out
+    flash(int(round(h * FPS)) + 1, 0.9 if h in (13.0, 58.0) else 0.2 if h == 48.0 else 0.7, 10)
 
 # overlays: vignette on photo sections, bottom gradient under lower captions
-for f0, n in [(1, 150), (931, 510)]:
+for f0, n in [(1, 150), (931, 510), (1441, 180)]:
     overlay(G + "vignette.png", f0, n, 30, 1.0, fade=4)
-for f0, n in [(151, 240), (541, 300), (841, 510), (1441, 180)]:
+for f0, n in [(151, 240), (541, 300), (841, 600), (1441, 180)]:
     overlay(G + "bottomgrad.png", f0 + 20, n - 20, 31, 1.0, fade=14)
 
 # ------------------------------------------------------------------ captions

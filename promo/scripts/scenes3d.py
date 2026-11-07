@@ -207,21 +207,8 @@ def shot_title():
     piv.keyframe_insert("rotation_euler", frame=F, index=1)
     set_interp("BEZIER")
     dust(140, box=((-8, 8), (-3, 8), (-4, 4)), frames=F)
-    gold = mat_gold("title_gold", 0.18, emit=0.0, alpha_obj=True)
-    t = text("title", "削減アミダクジ", 1.25, gold, font(FONT_B), extrude=0.1, bevel=0.018, spacing=1.05)
-    t.rotation_euler = (math.radians(90), 0, 0)
-    t.location = (0, 0, 0.35)
-    alpha_key(t, 1, 0.0)
-    alpha_key(t, 8, 0.0)
-    alpha_key(t, 34, 1.0)
-    key(t, "location", 8, (0, 0.6, 0.35))
-    key(t, "location", 60, (0, 0, 0.35))
-    sub = text("sub", "R E A L   N E G O T I A T I O N   G A M E", 0.17, mat_emit_obj("m_sub", 1.0), font(FONT_M))
-    sub.rotation_euler = (math.radians(90), 0, 0)
-    sub.location = (0, -0.05, 1.42)
-    sub.color = (*GOLD, 0.0)
-    alpha_key(sub, 30, 0.0)
-    alpha_key(sub, 60, 1.6)
+    # the title itself is the official logotype cut out of the key art (prep2.py -> title_logo.png),
+    # laid over this shot in edit.py so it matches the key art at the end
     tag = text("tag", "阿弥陀を消して、生き残れ。", 0.50, mat_emit_obj("m_tag", 1.0), font(FONT_M), spacing=1.12)
     tag.data.materials.append(mat_emit_obj("m_tag_red", 1.0))
     body = tag.data.body

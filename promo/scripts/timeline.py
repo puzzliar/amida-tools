@@ -14,18 +14,24 @@ SHOTS3D = [
 D = "PXL_20261017_0"
 COLD_OPEN = [(D + "55603782.jpg", 1, 75, (1.00, 1.10), (0.00, -0.03)),   # grandfather clock
              (D + "55648571.jpg", 76, 75, (1.12, 1.02), (0.02, 0.0))]     # crystal chandelier
+# constant pixel offset for a photo's Ken Burns move (positive y shows more of the lower part)
+PHOTO_OFFSET = {D + "55648571.jpg": (0, 400)}   # hides the ceiling air-conditioner (top right)
 # live-action chip footage (Drive videos), 0:31-0:45, slowed down with grain/flicker/glitches (prep3.py)
 # (name, source video, source start sec, vse_start, length, (scale0, scale1), (dx, dy) drift, speed)
 V = "PXL_20261017_0"
 CLIPS = [
     ("case_front", V + "40954247.mp4", 9.5, 931, 120, (1.00, 1.08), (0.0, 0.0), 0.6),     # latches undone, lid lifts on the chips
     ("case_angle", V + "41241358.mp4", 12.0, 1051, 90, (1.10, 1.02), (0.02, 0.0), 0.5),   # second angle on the opening case
-    ("deal", V + "41614139.mp4", 19.9, 1141, 105, (1.08, 1.16), (-0.02, -0.01), 0.5),     # chips handed across the table
+    ("deal", V + "41614139.mp4", 19.9, 1141, 105, (1.00, 1.05), (0.0, 0.0), 0.5),         # chips handed across the table (FOCUS)
     ("hand_off", V + "42358932.mp4", 9.2, 1246, 105, (1.00, 1.06), (0.0, 0.0), 0.5),      # chips passed hand to hand (FOCUS)
 ]
 # per-clip reframing: crop in on a tracked point, keep an ellipse around it sharp and blur the rest
 # track: (clip frame, x, y) in source 1920x1080 pixels; sharp: ellipse half-axes in output pixels
 FOCUS = {
+    # crop stays below the chin for the whole shot (window top >= y 370 in the source)
+    "deal": dict(zoom=1.4, sharp=(760, 420), blur=14,
+                 track=[(0, 1020, 760), (13, 1050, 790), (26, 1050, 800), (39, 1080, 820), (52, 1110, 830),
+                        (65, 1110, 840), (78, 1110, 835), (91, 1120, 840), (104, 1110, 830)]),
     "hand_off": dict(zoom=1.3, sharp=(660, 340), blur=26,
                      track=[(0, 1090, 720), (13, 1060, 740), (26, 1090, 740), (39, 1110, 800), (52, 1090, 790),
                             (65, 1060, 785), (78, 1020, 770), (91, 1010, 740), (104, 980, 720)]),
@@ -37,7 +43,8 @@ MONTAGE = [  # file, start, length, (scale0, scale1), (dx, dy) drift
     (D + "55538791.jpg", 1411, 30, (1.02, 1.10), (0.0, 0.0)),    # the black salon
 ]
 END_START = 1621      # key art
-END_CARD = 1741       # booking card overlay begins
+END_CARD = 1651       # booking plate + URL/QR over the key art (0:55)
+BOOKING_URL = "https://puzzliar.jp"
 
 # (text, start, end, y, size, colour, style)
 CAPTIONS = [
@@ -47,14 +54,14 @@ CAPTIONS = [
     ("リアル交渉ゲーム", 228, 392, 0.155, 96, "gold", "plain"),
     ("横線を消して、", 556, 718, 0.235, 58, "ivory", "plain"),
     ("中央への〈最短ルート〉を作れ。", 596, 718, 0.140, 72, "gold", "plain"),
-    ("最短ルートのプレイヤーの", 736, 842, 0.235, 58, "ivory", "plain"),
-    ("メダルを最も多く持つ者が、勝つ。", 752, 842, 0.140, 72, "gold", "plain"),
+    ("最短ルートのプレイヤーの", 722, 848, 0.235, 58, "ivory", "plain"),
+    ("メダルを最も多く持つ者が、勝つ。", 730, 848, 0.140, 72, "gold", "plain"),
     ("協力か。　裏切りか。", 850, 930, 0.150, 88, "ivory", "plain"),
     ("嘘と信頼が入り混じる、", 948, 1136, 0.240, 52, "ivory", "plain"),
     ("スリリングな交渉ゲーム。", 962, 1136, 0.145, 80, "gold", "plain"),
     ("その言葉は、真実か。", 1150, 1240, 0.150, 76, "ivory", "plain"),
     ("手を組んだ相手が、最後に裏切る。", 1256, 1346, 0.150, 76, "ivory", "plain"),
-    ("疑え。信じろ。──そして、出し抜け。", 1354, 1440, 0.50, 76, "gold", "plain"),
+    ("疑え。信じろ。──そして、出し抜け。", 1354, 1440, 0.150, 76, "gold", "plain"),
     ("息を呑む駆け引き。張り詰めた沈黙。", 1452, 1534, 0.165, 60, "ivory", "plain"),
     ("騙し合いの頭脳戦を、その身で。", 1540, 1632, 0.165, 72, "gold", "plain"),
 ]
