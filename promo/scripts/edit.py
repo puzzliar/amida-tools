@@ -174,7 +174,7 @@ logo.blend_type = "ALPHA_OVER"
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
 for f, sc_ in [(T0 + 8, 0.70), (T0 + 150, 0.76)]:
     logo.transform.scale_x = logo.transform.scale_y = sc_
-    logo.transform.offset_y = 40
+    logo.transform.offset_y = 95  # keep the amida hub dot below the glyphs
     for p_ in ("scale_x", "scale_y", "offset_y"):
         logo.transform.keyframe_insert(p_, frame=f)
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "BEZIER"
