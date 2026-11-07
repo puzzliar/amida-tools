@@ -177,23 +177,18 @@ for i, m in enumerate(MONTAGE):
 # ------------------------------------------------------------------ H: key art + booking card
 hero = ST.new_image("hero", G + "hero.png", next_ch(), END_START, fit_method="FIT")
 hero.frame_final_duration = TOTAL - END_START + 1
-kenburns(hero, END_START, TOTAL - END_START, (1.0, 1.07), (0.0, 0.01))
+# kenburns() sets transform.scale directly (overriding FIT), so scale the 1672x941 key art to the frame width
+_k = 1920 / hero.elements[0].orig_width if hero.elements[0].orig_width else 1920 / 1672
+kenburns(hero, END_START, TOTAL - END_START, (_k, _k * 1.03), (0.0, 0.0))  # gentle: keep the info boxes in frame
 kf(hero, "blend_alpha", END_START, 0.0)
 kf(hero, "blend_alpha", END_START + 14, 1.0)
-dim = ST.new_effect("dim", "COLOR", next_ch(), END_CARD, length=TOTAL - END_CARD + 1)
-dim.color = (0, 0, 0)
-dim.blend_type = "ALPHA_OVER"
-kf(dim, "blend_alpha", END_CARD, 0.0)
-kf(dim, "blend_alpha", END_CARD + 12, 0.978)
-kf(hero, "color_saturation", END_CARD, 1.0)
-kf(hero, "color_saturation", END_CARD + 12, 0.5)
 
 # flashes on every hit
 for h in HITS:
     flash(int(round(h * FPS)) + 1, 0.9 if h in (13.0, 58.0) else 0.7, 10)
 
 # overlays: vignette on photo sections, bottom gradient under lower captions
-for f0, n in [(1, 150), (931, 510), (END_START, 120)]:
+for f0, n in [(1, 150), (931, 510)]:
     overlay(G + "vignette.png", f0, n, 30, 1.0, fade=4)
 for f0, n in [(151, 240), (541, 300), (841, 510), (1441, 180)]:
     overlay(G + "bottomgrad.png", f0 + 20, n - 20, 31, 1.0, fade=14)
@@ -202,15 +197,8 @@ for f0, n in [(151, 240), (541, 300), (841, 510), (1441, 180)]:
 for txt, f0, f1, y, size, col, _ in CAPTIONS:
     caption(txt, f0, f1, y, size, col)
 
-# end card
-E = END_CARD
-overlay(G + "endframe.png", E + 4, TOTAL - E - 3, 32, 1.0, fade=14)
-caption("リ ア ル 交 渉 ゲ ー ム", E + 8, TOTAL + 1, 1 - 330 / 1080, 40, "gold", FONT_M, fade=14, drift=0)
-caption("削減アミダクジ", E + 12, TOTAL + 1, 0.565, 150, "gold", FONT_B, fade=16, drift=0)
-caption("阿弥陀を消して、生き残れ。", E + 20, TOTAL + 1, 0.455, 40, "ivory", FONT_M, fade=14, drift=0)
-caption("貸切予約　受付中", E + 30, TOTAL + 1, 1 - 707 / 1080, 70, "ivory", FONT_B, fade=12, drift=0)
-caption("プレイヤー 15名　／　公演時間 約3時間", E + 44, TOTAL + 1, 1 - 862 / 1080, 38, "ivory", FONT_M, fade=14, drift=0)
-caption("P U Z Z L I A R", E + 50, TOTAL + 1, 0.085, 32, "gold", FONT_M, fade=14, drift=0)
+# end: the key art already carries title, tagline, players and running time - only add the booking plate
+overlay(G + "booking.png", END_CARD, TOTAL - END_CARD + 1, 32, 1.0, fade=12)
 
 # fade to black at the very end
 blk = ST.new_effect("black", "COLOR", 60, TOTAL - 14, length=15)
