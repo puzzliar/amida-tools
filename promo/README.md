@@ -39,3 +39,8 @@ export PROMO_WORK=/path/to/work   # assets/ と render/ を置く作業ディレ
 7. 仕上げ：`./finish.sh master.mp4 削減アミダクジ_PV.mp4`（グレード後に 0:31–0:48 へ粒子ノイズを足し、2パス 9Mbps で書き出し）
 
 テロップの文言とタイミングは `timeline.py` にまとめてあります。
+
+## サムネイル
+
+`thumbnail.png` / `thumbnail.jpg`（1280×720。YouTube 等のサムネイル用）— チップを手渡す瞬間、「その言葉、信じるか。」、公式ロゴ、「貸切予約受付中」。
+再生成：`./venv/bin/python thumbnail.py $PROMO_WORK thumbnail.png`（`prep2.py` で作る `title_logo.png` を使用）
