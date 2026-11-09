@@ -7,6 +7,28 @@ import os; os.makedirs(G + "photos", exist_ok=True)
 for f, *_ in COLD_OPEN + MONTAGE:
     Image.open(D + f).convert("RGB").resize((2560, 1920), Image.LANCZOS).save(G + "photos/" + f, quality=93)
 Image.open(D + "hero_amida.png").convert("RGB").save(G + "hero.png")
+# ---------------------------------------------------------------- official medal + minus-card textures
+# medal_<n>.png: square crop of the medal disc, outside of the circle filled with the disc's base colour
+import numpy as np
+for n in (1, 8):
+    src = D + f"medal_{n}.png"
+    if not os.path.exists(src):
+        continue
+    a = np.asarray(Image.open(src).convert("RGB")).astype(int)
+    ys, xs = np.where(a.sum(2) > 40)
+    cx, cy = (xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2
+    r = max(xs.max() - xs.min(), ys.max() - ys.min()) / 2
+    base = a[int(cy - r * 0.96), int(cx)]
+    sq = Image.open(src).convert("RGB").crop((int(cx - r), int(cy - r), int(cx + r), int(cy + r))).resize((2048, 2048), Image.LANCZOS)
+    q = np.asarray(sq).copy()
+    yy, xx = np.mgrid[0:2048, 0:2048]
+    q[((xx - 1023.5) ** 2 + (yy - 1023.5) ** 2) > (1018 ** 2)] = base
+    Image.fromarray(q.astype(np.uint8)).save(G + f"medal_{n}.png")
+    with open(G + f"medal_{n}.base", "w") as fh:
+        fh.write(" ".join(str(int(v)) for v in base))
+if os.path.exists(D + "minus_card.jpg"):
+    Image.open(D + "minus_card.jpg").convert("RGB").save(G + "card_minus.png")
+
 # ---------------------------------------------------------------- official logotype cut out of the key art
 # (bright, low-saturation gold glyphs; the orange floor pattern and small specks are rejected)
 import numpy as np

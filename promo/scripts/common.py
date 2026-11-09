@@ -278,13 +278,17 @@ def plane(name, w, h, mat, coll=None):
 class Amida:
     """Radial amida: N spokes from r_in to r_out, ROWS rungs per sector (staggered)."""
 
-    def __init__(self, n=16, rows=6, r_in=0.75, r_out=4.6):
+    def __init__(self, n=15, rows=6, r_in=0.75, r_out=4.6):
+        # 15 players -> 15 spokes, numbered 1-15 like the medals and the presentation tool
         self.n, self.rows, self.r_in, self.r_out = n, rows, r_in, r_out
         self.rungs = []  # (sector, radius)
         span = r_out - r_in
+        # stagger neighbouring sectors so no two rungs meet a spoke at the same radius
+        # (2-way works for even n; odd n needs 3-way, which also closes the ring when n % 3 == 0)
+        k = 2 if n % 2 == 0 else 3
         for row in range(rows):
             for s in range(n):
-                level = row + 1 + (0.5 if s % 2 else 0.0)
+                level = row + 1 + (s % k) / k
                 r = r_out - level * span / (rows + 1.6)
                 self.rungs.append((s, r))
 
@@ -329,7 +333,7 @@ class Amida:
             o.color = (0.62, 0.52, 0.38, 1.0)
             self.spokes.append(o)
             if label:
-                t = text(f"lab{i}", "ABCDEFGHIJKLMNOP"[i], label_size, self.m_label, font(FONT_M), coll=coll)
+                t = text(f"lab{i}", str(i + 1), label_size, self.m_label, font(FONT_M), coll=coll)
                 t.location = self.pt(i, self.r_out + 0.62)
                 t.color = (*LAV, 1.0)
                 self.labels.append(t)
@@ -383,39 +387,46 @@ def route_curve(points, mat, radius=0.05, coll=None):
 
 
 # ---------------------------------------------------------------- medal
-def medal(name, letter="B", coll=None, mats={}):
+def medal(name, number=8, coll=None, mats={}):
+    """Official medal: a disc whose two faces carry the medal artwork (gen/medal_<n>.png), rim in its base colour."""
     import bmesh
-    if "gold" not in mats:
-        mats["gold"] = mat_gold("medal_gold", 0.28)
-        mats["dark"] = mat_principled("medal_dark", (0.07, 0.016, 0.012), 0.3, 0.45)
-        mats["glyph"] = mat_gold("medal_glyph", 0.18, emit=0.6)
-    if "mesh" not in mats:
-        me = bpy.data.meshes.new("medal")
+    key_ = f"mesh{number}"
+    if key_ not in mats:
+        tex = S + f"/assets/gen/medal_{number}.png"
+        base = [int(v) / 255 for v in open(S + f"/assets/gen/medal_{number}.base").read().split()]
+        base = tuple(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in base)
+        rim = mat_principled(f"medal_rim{number}", base, 0.25, 0.45)
+        face = bpy.data.materials.new(f"medal_face{number}")
+        face.use_nodes = True
+        nt = face.node_tree
+        p = nt.nodes["Principled BSDF"]
+        im = nt.nodes.new("ShaderNodeTexImage")
+        im.image = bpy.data.images.load(tex)
+        im.interpolation = "Smart"
+        nt.links.new(im.outputs["Color"], p.inputs["Base Color"])
+        nt.links.new(im.outputs["Color"], p.inputs["Emission Color"])
+        p.inputs["Emission Strength"].default_value = 0.18   # keeps the numerals legible in the dark scenes
+        p.inputs["Roughness"].default_value = 0.42
+        p.inputs["Coat Weight"].default_value = 0.35
+        me = bpy.data.meshes.new(f"medal{number}")
         bm = bmesh.new()
-        bmesh.ops.create_cone(bm, cap_ends=True, segments=48, radius1=0.42, radius2=0.42, depth=0.07)
+        bmesh.ops.create_cone(bm, cap_ends=True, segments=64, radius1=0.42, radius2=0.42, depth=0.07)
+        uv = bm.loops.layers.uv.new("UVMap")
+        for f in bm.faces:
+            f.normal_update()
+            cap = abs(f.normal.z) > 0.9
+            f.material_index = 1 if cap else 0
+            f.smooth = not cap
+            if cap:
+                for l in f.loops:
+                    x, y = l.vert.co.x / 0.84, l.vert.co.y / 0.84
+                    l[uv].uv = (0.5 + (x if f.normal.z > 0 else -x), 0.5 + y)
         bm.to_mesh(me)
         bm.free()
-        me.materials.append(mats["gold"])
-        for p in me.polygons:
-            p.use_smooth = True
-        mats["mesh"] = me
-        me2 = bpy.data.meshes.new("medal_in")
-        bm = bmesh.new()
-        bmesh.ops.create_cone(bm, cap_ends=True, segments=48, radius1=0.31, radius2=0.31, depth=0.074)
-        bm.to_mesh(me2)
-        bm.free()
-        me2.materials.append(mats["dark"])
-        mats["mesh2"] = me2
-    o = link(bpy.data.objects.new(name, mats["mesh"]), coll)
-    inner = link(bpy.data.objects.new(name + "_in", mats["mesh2"]), coll)
-    inner.parent = o
-    for side in (1, -1):
-        t = text(name + f"_t{side}", letter, 0.44, mats["glyph"], font(FONT_B), extrude=0.006, coll=coll)
-        t.parent = o
-        t.location = (0, 0, side * 0.04)
-        t.rotation_euler = (0 if side > 0 else math.pi, 0, 0)
-    # notches on rim
-    return o
+        me.materials.append(rim)
+        me.materials.append(face)
+        mats[key_] = me
+    return link(bpy.data.objects.new(name, mats[key_]), coll)
 
 
 # ---------------------------------------------------------------- dust / camera / compositor

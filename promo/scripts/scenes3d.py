@@ -23,11 +23,11 @@ GEN = ASSETS + "/gen/"
 
 # ------------------------------------------------------------------ amida route setup (shared by build/rule)
 AM = Amida()
-REMOVE, ROUTE_START = None, 1
+REMOVE, ROUTE_START = None, 7   # spoke index 7 = player 8 (blue 8 medals)
 
 
 def pick_removal():
-    """Choose 16 rungs to remove so that spoke B gets a unique, short route."""
+    """Choose 18 rungs to remove so that player 8 gets the unique shortest route."""
     rnd = random.Random(11)
     best = None
     for _ in range(4000):
@@ -151,13 +151,12 @@ def shot_rule():
     alpha_key(AM.dot, 180, 30.0)
     alpha_key(AM.dot, 200, 8.0)
     # medals rain onto the centre
-    letter = "ABCDEFGHIJKLMNOP"[ROUTE_START]
     rnd = random.Random(5)
     area_light("key", (2.5, -3.5, 6.0), (math.radians(35), 0, math.radians(25)), 4.0, 900)
     area_light("rim", (-4, 3, 2.5), (math.radians(-60), math.radians(-40), 0), 3.0, 500, color=(1, 0.3, 0.2))
     area_light("fill", (0, -6, 1.5), (math.radians(80), 0, 0), 6.0, 120, color=(1, 0.8, 0.6))
     for i in range(14):
-        m = medal(f"medal{i}", letter)
+        m = medal(f"medal{i}", ROUTE_START + 1)
         stack = i % 3
         base = [(0.0, 0.0), (0.95, 0.35), (-0.9, 0.45)][stack]
         h = i // 3
@@ -327,7 +326,7 @@ def shot_cards():
     cw, ch = 0.98, 1.4
     cards = [
         ("card_back", True, (-1.55, 0.55, 0.0), 0.35),
-        ("card_place", False, (1.35, 0.85, 0.0), -0.25),
+        ("card_minus", False, (1.1, 0.8, 0.0), -0.2),   # official minus card (face up at 0:49)
         ("card_back", True, (-0.4, 1.35, 0.0), -0.1),
         ("card_back", True, (1.9, -0.35, 0.0), 0.55),
         ("card_main", False, (0.05, 0.05, 0.0), 0.08),
@@ -347,7 +346,8 @@ def shot_cards():
         pr.inputs["Emission Strength"].default_value = 0.08
         out = [n for n in nt.nodes if n.type == "OUTPUT_MATERIAL"][0]
         nt.links.new(pr.outputs[0], out.inputs[0])
-        c = plane(f"card{i}", cw, ch, mat)
+        iw, ih = __import__("PIL.Image", fromlist=["Image"]).open(GEN + img + ".png").size
+        c = plane(f"card{i}", ch * iw / ih if not face_down else cw, ch, mat)
         z = 0.004 + i * 0.003
         target_rot = (math.pi if face_down else 0.0, 0.0, rz)
         f0 = 6 + i * 16
@@ -361,7 +361,7 @@ def shot_cards():
         c.rotation_euler = target_rot
         c.keyframe_insert("rotation_euler", frame=f0 + 22)
     for i in range(7):
-        m = medal(f"tm{i}", "ABCDEFGHIJKLMNO"[rnd.randrange(15)])
+        m = medal(f"tm{i}", rnd.choice((1, 8)))
         ang = rnd.uniform(0, 6.28)
         rr = rnd.uniform(1.4, 2.6)
         m.location = (rr * math.cos(ang), rr * math.sin(ang) + 0.3, 0.036)
