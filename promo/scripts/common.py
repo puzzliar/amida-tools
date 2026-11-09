@@ -278,9 +278,10 @@ def plane(name, w, h, mat, coll=None):
 class Amida:
     """Radial amida: N spokes from r_in to r_out, ROWS rungs per sector (staggered)."""
 
-    def __init__(self, n=15, rows=6, r_in=0.75, r_out=4.6):
+    def __init__(self, n=15, rows=6, r_in=0.75, r_out=4.6, rot=0.0):
         # 15 players -> 15 spokes, numbered 1-15 like the medals and the presentation tool
-        self.n, self.rows, self.r_in, self.r_out = n, rows, r_in, r_out
+        # rot: turns the whole board (degrees, counter-clockwise seen from above)
+        self.n, self.rows, self.r_in, self.r_out, self.rot = n, rows, r_in, r_out, rot
         self.rungs = []  # (sector, radius)
         span = r_out - r_in
         # stagger neighbouring sectors so no two rungs meet a spoke at the same radius
@@ -293,7 +294,7 @@ class Amida:
                 self.rungs.append((s, r))
 
     def ang(self, i):
-        return math.radians(90 - i * 360 / self.n)
+        return math.radians(90 + self.rot - i * 360 / self.n)
 
     def pt(self, i, r, z=0.0):
         a = self.ang(i % self.n)

@@ -108,6 +108,9 @@ def shot_build():
 # ------------------------------------------------------------------ shot D: rule (remove rungs, route, medals)
 def shot_rule():
     F = 312
+    # turn the board so player 8's spoke sits back-right (where spoke 2 is in the build shot):
+    # the camera travels that way, so the highlight starts on screen instead of below the frame
+    AM.rot = (ROUTE_START - 1) * 360 / AM.n
     sc = amida_scene_base(F)
     cam, tgt = camera(32, dof=5.0)
     for t in AM.labels:
@@ -360,14 +363,17 @@ def shot_cards():
         c.keyframe_insert("location", frame=f0 + 22)
         c.rotation_euler = target_rot
         c.keyframe_insert("rotation_euler", frame=f0 + 22)
-    for i in range(7):
-        m = medal(f"tm{i}", rnd.choice((1, 8)))
-        ang = rnd.uniform(0, 6.28)
-        rr = rnd.uniform(1.4, 2.6)
-        m.location = (rr * math.cos(ang), rr * math.sin(ang) + 0.3, 0.036)
-        m.rotation_euler = (0, 0, rnd.uniform(0, 6.28))
+    # medals of many players around the cards; 16 sits in the clear spot the final close-up ends on
+    TABLE_MEDALS = [
+        (16, (0.85, -0.4)), (3, (-1.05, -0.55)), (12, (1.75, 0.55)), (6, (-1.6, -1.25)),
+        (1, (-0.35, 2.35)), (8, (2.55, -0.9)), (14, (-2.3, 1.45)), (5, (0.75, 2.2)),
+        (10, (-2.35, -0.2)), (2, (2.2, 1.65)), (11, (1.55, -1.45)), (7, (-0.6, -1.55)),
+    ]
+    for i, (num, (x, y)) in enumerate(TABLE_MEDALS):
+        m = medal(f"tm{i}", num)
+        m.location = (x + rnd.uniform(-0.05, 0.05), y + rnd.uniform(-0.05, 0.05), 0.023)
+        m.rotation_euler = (0, 0, rnd.uniform(-0.5, 0.5))   # numerals roughly upright to the camera
         m.scale = (0.62, 0.62, 0.62)
-        m.location.z = 0.023
     dust(120, box=((-4, 4), (-3, 4), (0.1, 4)), frames=F, strength=2.0, size=0.012)
     cam, tgt = camera(40, dof=2.2)
     cam_keys(cam, tgt, [

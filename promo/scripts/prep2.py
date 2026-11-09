@@ -8,21 +8,34 @@ for f, *_ in COLD_OPEN + MONTAGE:
     Image.open(D + f).convert("RGB").resize((2560, 1920), Image.LANCZOS).save(G + "photos/" + f, quality=93)
 Image.open(D + "hero_amida.png").convert("RGB").save(G + "hero.png")
 # ---------------------------------------------------------------- official medal + minus-card textures
-# medal_<n>.png: square crop of the medal disc, outside of the circle filled with the disc's base colour
+# medal_<n>.png (1-16): square crop of the medal disc, outside of the circle filled with the disc's base colour
 import numpy as np
-for n in (1, 8):
+from scipy import ndimage as ndi
+for n in range(1, 17):
     src = D + f"medal_{n}.png"
     if not os.path.exists(src):
         continue
     a = np.asarray(Image.open(src).convert("RGB")).astype(int)
-    ys, xs = np.where(a.sum(2) > 40)
+    if a[:40, :40].mean() > 128:
+        # exported on a light transparency checkerboard: the disc is everything that is not light grey
+        mx, mn = a.max(2), a.min(2)
+        disc = ~((mn > 170) & (mx - mn < 24))
+        lab, k = ndi.label(ndi.binary_fill_holes(ndi.binary_opening(disc, iterations=3)))
+        disc = lab == (np.argmax(np.bincount(lab.ravel())[1:]) + 1)
+        ys, xs = np.where(disc)
+    else:
+        ys, xs = np.where(a.sum(2) > 40)      # black background
     cx, cy = (xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2
     r = max(xs.max() - xs.min(), ys.max() - ys.min()) / 2
-    base = a[int(cy - r * 0.96), int(cx)]
+    # base colour: median over a thin band just inside the rim (robust against ornament lines)
+    yy, xx = np.mgrid[0:a.shape[0], 0:a.shape[1]]
+    rr = np.hypot(xx - cx, yy - cy) / r
+    band = a[(rr > 0.975) & (rr < 0.99)]
+    base = np.median(band, 0).astype(int)
     sq = Image.open(src).convert("RGB").crop((int(cx - r), int(cy - r), int(cx + r), int(cy + r))).resize((2048, 2048), Image.LANCZOS)
     q = np.asarray(sq).copy()
     yy, xx = np.mgrid[0:2048, 0:2048]
-    q[((xx - 1023.5) ** 2 + (yy - 1023.5) ** 2) > (1018 ** 2)] = base
+    q[((xx - 1023.5) ** 2 + (yy - 1023.5) ** 2) > (1000 ** 2)] = base
     Image.fromarray(q.astype(np.uint8)).save(G + f"medal_{n}.png")
     with open(G + f"medal_{n}.base", "w") as fh:
         fh.write(" ".join(str(int(v)) for v in base))
