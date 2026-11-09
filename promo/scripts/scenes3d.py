@@ -332,7 +332,7 @@ def shot_cards():
         ("card_minus", False, (1.1, 0.8, 0.0), -0.2),   # official minus card (face up at 0:49)
         ("card_back", True, (-0.4, 1.35, 0.0), -0.1),
         ("card_back", True, (1.9, -0.35, 0.0), 0.55),
-        ("card_main", False, (0.05, 0.05, 0.0), 0.08),
+        ("card_minus", False, (0.05, 0.05, 0.0), 0.08),  # centre card: minus card (was the main-vote card)
     ]
     rnd = random.Random(9)
     for i, (img, face_down, pos, rz) in enumerate(cards):
