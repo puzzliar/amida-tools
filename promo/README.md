@@ -42,5 +42,8 @@ export PROMO_WORK=/path/to/work   # assets/ と render/ を置く作業ディレ
 
 ## サムネイル
 
-`thumbnail.png` / `thumbnail.jpg`（1280×720。YouTube 等のサムネイル用）— チップを手渡す瞬間、「その言葉、信じるか。」、公式ロゴ、「貸切予約受付中」。
-再生成：`./venv/bin/python thumbnail.py $PROMO_WORK thumbnail.png`（`prep2.py` で作る `title_logo.png` を使用）
+いずれも 1280×720（YouTube 等のサムネイル用）。`.png` と `.jpg` を同梱。
+- `thumbnail.png` — チップを手渡す瞬間、「その言葉、信じるか。」、公式ロゴ、「貸切予約受付中」
+- `thumbnail_amida.png` — 0:11 の放射状アミダ（3D）を背景に、同じ要素をポスター風の中央配置で
+
+再生成：`./venv/bin/python thumbnail.py $PROMO_WORK [--layout chips|amida] 出力.png`（`prep2.py` で作る `title_logo.png` を使用）
