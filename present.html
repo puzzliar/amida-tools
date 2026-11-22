@@ -490,7 +490,6 @@ function buildSlides() {
   t && (slides.push({ type: "place-amida" }), slides.push({ type: "honsen-start" }));
   for (let e = 1; e <= totalTurns; e++)
     (slides.push({ type: "turn-start", turn: e }),
-      slides.push({ type: "amida", turn: e, bars: [...turnSnapshots[e - 1]] }),
       slides.push({ type: "tallying", turn: e }),
       slides.push({ type: "result-announce", turn: e }),
       slides.push({ type: "amida-before-result", turn: e, bars: [...turnSnapshots[e - 1]] }),
@@ -646,7 +645,7 @@ function buildPlaceAmidaSVG(e, t, n, i, s, a) {
         : ((h = "rgba(20,20,20,.7)"), (f = "#444441"), (y = "#6a6a64"), (g = "未確定"), (b = "#555552"));
     const $ = void 0 !== t[d] ? Number(t[d]) : void 0,
       w = (void 0 !== $ && (players.find((e) => e.origIdx === $) || players[$])) || null,
-      wn = (w && w.name) || "",
+      wn = (w && !isPhantom(w) && w.name) || "",
       k = wn.length > 6 ? wn.slice(0, 6) + "…" : wn,
       S = k ? 3 : 2,
       M = Math.max(64, 0.8 * m + (k.length || 0) * v * 0.6 + 20),
@@ -795,17 +794,9 @@ function buildAmidaSVG(e, t) {
       d = n <= 8 ? 24 : n <= 12 ? 22 : 19,
       m = n <= 8 ? 22 : n <= 12 ? 20 : 17,
       v = n <= 8 ? 18 : n <= 12 ? 17 : 16;
-    if (l) {
-      const e = "空席",
-        t = e.length * m * 0.7,
-        n = 6;
-      ((x += `<rect x="${(a - t / 2 - n).toFixed(1)}" y="${(r - 0.72 * d).toFixed(1)}" width="${(t + 2 * n).toFixed(1)}" height="${(1.44 * d).toFixed(1)}" rx="4" fill="rgba(10,10,9,.5)" stroke="#5a5a56" stroke-width="0.8" stroke-dasharray="3 2"/>`),
-        (x += `<text x="${a.toFixed(1)}" y="${r.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-size="${m}" fill="#7a7872" font-style="italic">${e}</text>`));
-      continue;
-    }
     const h = rulesConfig.hidePlaceResults,
-      f = o && void 0 !== o.origIdx ? o.origIdx + 1 : t + 1,
-      y = o && o.name ? o.name : "",
+      f = l ? "" : o && void 0 !== o.origIdx ? o.origIdx + 1 : t + 1,
+      y = l ? "" : o && o.name ? o.name : "",
       g = n <= 6 ? 99 : n <= 10 ? 10 : n <= 12 ? 8 : 7,
       b = h ? "" : y.length > g ? y.slice(0, g) + "…" : y;
     let $ = 0;
@@ -1590,7 +1581,7 @@ function renderSlide() {
     case "amida-before-result":
       ((n.style.background = "var(--bg0)"),
         (t.style.padding = "0"),
-        (t.innerHTML = `<div class="amida-wrap">\n<div class="amida-turn-label">ラウンド ${e.turn} 集計前 <span style="color:var(--text2);font-size:.7em">(発表前)</span></div>\n<div class="amida-svg-wrap">\n<svg viewBox="-420 -420 840 840" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">${buildAmidaSVG(e.bars)}</svg>\n</div>\n</div>`));
+        (t.innerHTML = `<div class="amida-wrap">\n<div class="amida-turn-label">ラウンド ${e.turn} 投票前</div>\n<div class="amida-svg-wrap">\n<svg viewBox="-420 -420 840 840" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">${buildAmidaSVG(e.bars)}</svg>\n</div>\n</div>`));
       break;
     case "amida-result": {
       n.style.background = "var(--bg0)";
@@ -1618,6 +1609,20 @@ function toggleTurnTimer() {
   // タイマー表示のないスライドで T キーを押しても裏でタイマーが走らないようにする
   if (!timerRunning && !document.getElementById("centerTimer")) return;
   timerRunning ? pauseTurnTimer() : startTurnTimer();
+}
+let _lastEnterTs = 0;
+function handleEnterKey() {
+  // タイマー非表示ページ: Enter 1回で次へ
+  if (!document.getElementById("centerTimer")) return void nextSlide();
+  // タイマー終了後(残り0): 1回で次へ
+  if (timerSec <= 0) return void nextSlide();
+  // 進行中: ダブルクリックのように2回押しで次へ（1回では進めない）
+  if (timerRunning) {
+    const e = Date.now();
+    return void (e - _lastEnterTs < 450 ? ((_lastEnterTs = 0), nextSlide()) : (_lastEnterTs = e));
+  }
+  // 未開始/一時停止中: Enter でタイマーを進める（開始）
+  startTurnTimer();
 }
 function adjustTimer(e) {
   const t = timerSec + e;
@@ -1803,9 +1808,11 @@ function toggleFullscreen() {
       "flex" !== n &&
       "flex" !== i &&
       "INPUT" !== e.target.tagName &&
-      ("ArrowRight" === e.key || " " === e.key || "Enter" === e.key
+      ("ArrowRight" === e.key || " " === e.key
         ? (e.preventDefault(), nextSlide())
-        : "ArrowLeft" === e.key
+        : "Enter" === e.key
+          ? (e.preventDefault(), handleEnterKey())
+          : "ArrowLeft" === e.key
           ? (e.preventDefault(), prevSlide())
           : "f" === e.key || "F" === e.key
             ? toggleFullscreen()
