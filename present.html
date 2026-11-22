@@ -645,7 +645,7 @@ function buildPlaceAmidaSVG(e, t, n, i, s, a) {
         : ((h = "rgba(20,20,20,.7)"), (f = "#444441"), (y = "#6a6a64"), (g = "未確定"), (b = "#555552"));
     const $ = void 0 !== t[d] ? Number(t[d]) : void 0,
       w = (void 0 !== $ && (players.find((e) => e.origIdx === $) || players[$])) || null,
-      wn = (w && !isPhantom(w) && w.name) || "",
+      wn = "",
       k = wn.length > 6 ? wn.slice(0, 6) + "…" : wn,
       S = k ? 3 : 2,
       M = Math.max(64, 0.8 * m + (k.length || 0) * v * 0.6 + 20),
@@ -795,8 +795,8 @@ function buildAmidaSVG(e, t) {
       m = n <= 8 ? 22 : n <= 12 ? 20 : 17,
       v = n <= 8 ? 18 : n <= 12 ? 17 : 16;
     const h = rulesConfig.hidePlaceResults,
-      f = l ? "" : o && void 0 !== o.origIdx ? o.origIdx + 1 : t + 1,
-      y = l ? "" : o && o.name ? o.name : "",
+      f = ALPHA[t],
+      y = "",
       g = n <= 6 ? 99 : n <= 10 ? 10 : n <= 12 ? 8 : 7,
       b = h ? "" : y.length > g ? y.slice(0, g) + "…" : y;
     let $ = 0;
