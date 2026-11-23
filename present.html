@@ -133,6 +133,7 @@ let session = null,
   finalBars = [],
   turnSnapshots = {},
   chips = [],
+  chipHold = [],
   chipsConfirmed = !1,
   slides = [],
   curSlide = 0,
@@ -278,6 +279,7 @@ async function reloadSessionLatest() {
         })),
           (finalBars = [...e.bars]),
           (chips = Array.isArray(n.chips) ? n.chips : chips),
+          (chipHold = Array.isArray(n.chipHold) ? n.chipHold : chipHold),
           (chipsConfirmed = "boolean" == typeof n.chipsConfirmed ? n.chipsConfirmed : chipsConfirmed),
           (placeHistory = Array.isArray(n.placeHistory) ? n.placeHistory : []),
           (rulesConfig = Object.assign({ ...DEFAULT_RULES_CONFIG }, n.rulesConfig || {})),
@@ -389,6 +391,7 @@ async function loadSession(e) {
       (minusCardCount = "number" == typeof n.minusCardCount ? n.minusCardCount : 3),
       (plusCardCount = "number" == typeof n.plusCardCount ? n.plusCardCount : 1),
       (chips = Array.isArray(n.chips) ? n.chips : Array(N).fill(0)),
+      (chipHold = Array.isArray(n.chipHold) ? n.chipHold : []),
       (chipsConfirmed =
         "boolean" == typeof n.chipsConfirmed
           ? n.chipsConfirmed
@@ -1676,12 +1679,24 @@ function updateAdjBtnDisabled() {
 let _finalResults = [];
 function computeFinalResults() {
   const e = 1e8,
+    h = Array.isArray(chipHold) && chipHold.length > 0,
+    k = "A" === rulesConfig.prizeMode ? 1 : 3,
+    u = (e) =>
+      "A" === rulesConfig.prizeMode
+        ? 0 === e
+          ? rulesConfig.prizeA
+          : 0
+        : [rulesConfig.prizeB1, rulesConfig.prizeB2, rulesConfig.prizeB3][e] || 0,
     t = players
-      .map((t, n) =>
-        isPhantom(t)
-          ? null
-          : { p: t, i: n, chips: chips[n] || 0, earned: (chips[n] || 0) * e, net: (chips[n] || 0) * e - e },
-      )
+      .map((t, n) => {
+        if (isPhantom(t)) return null;
+        if (h) {
+          const i = (Array.isArray(chipHold[n]) ? chipHold[n] : [0, 0, 0]).slice(0, k).map((e) => parseInt(e) || 0),
+            s = i.reduce((e, t, n) => e + t * u(n), 0);
+          return { p: t, i: n, hold: i, chips: i.reduce((e, t) => e + t, 0), earned: s, net: s - e };
+        }
+        return { p: t, i: n, chips: chips[n] || 0, earned: (chips[n] || 0) * e, net: (chips[n] || 0) * e - e };
+      })
       .filter((e) => null !== e)
       .sort((e, t) => t.net - e.net);
   return (
@@ -1712,7 +1727,7 @@ function renderFinalReveal(e) {
     return `<div class="${`fr-card fr-size-${t} ${a ? "revealed" : ""} ${r && a ? "winner" : ""}`}" onclick="event.stopPropagation();revealCard(${e.i})">\n<div class="fr-rank ${r ? "win" : ""}">${e.rank} 位</div>\n<div class="fr-alpha">${e.p.alpha || "?"}</div>\n<div class="fr-name">${a ? esc(e.p.name) : "???"}</div>\n${
       a && i
         ? `\n<div class="fr-chips">${(function (e) {
-            return i ? `${e.chips}チップ` : "";
+            return i ? (e.hold ? e.hold.map((e, t) => `${t + 1}位${e}枚`).join("・") : `${e.chips}チップ`) : "";
           })(e)}</div>\n<div class="fr-money" style="color:${(function (e) {
             return e.net >= 0 ? "var(--green)" : "var(--red)";
           })(e)}">${(function (e) {
